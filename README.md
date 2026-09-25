@@ -31,7 +31,7 @@ GitHub Actions 从 checkout 读 data/feeds/*.xml → 与 RSS 源同构走完整�
 
 - 本机当天没跑 = 该源当日无更新，去重层兜住节奏差异，不断供不报错
 - 依赖分工：LightCounting 纯 HTTP 提取（零依赖）；Yole 需渲染（puppeteer-core 驱动系统 Chrome + stealth 插件，依赖装在 `tools/` 独立 package，不影响根 `npm ci`；首次使用先在 `tools/` 下 `npm install`，Chrome 路径可用环境变量 `LOCAL_FEEDS_CHROME` 覆盖）
-- **接口纪律：消费方永远以仓库 main 分支为准；本机 data/ 其余产物（queue/briefs/seen 等）只是开发草稿，绝不提交；本机跑 `node src/main.mjs` 仅供开发调试**
+- **接口纪律：消费方永远以仓库 main 分支为准；本机 data/ 其余产物只是开发草稿，绝不提交——完整判定规则见下节「本地 ↔ GitHub 同步规范」**
 - 部署（PowerShell 执行一次，时间自定，建议早于 Actions 的 01:17 UTC / 北京 09:17）：
 
 ```powershell
@@ -39,6 +39,35 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 ```
 
   并在任务属性勾选"如果错过了计划开始时间，请尽快启动任务"（关机日开机后补跑）。
+
+## 本地 ↔ GitHub 同步规范
+
+本机定位 = **feed 执行机 + 开发工作区**；GitHub 仓库 = **唯一真相源**（代码、feeds、全部数据产物的最全版本；数据产物由 Actions 独家产出并提交）。判定原则一句话：**改动会影响 main 分支运行的必须推，本机私有状态绝不推。**
+
+### 必须推（不推 = 功能不生效 / 断供）
+
+| 内容 | 原因 |
+|---|---|
+| `src/`、`tools/`、`.github/workflows/`、`.gitignore` | Actions 跑的是**远端 main**——本地改完不推 = 线上仍是旧逻辑，且没有任何报错提醒你 |
+| `package.json` **必须连带 `package-lock.json`** | Actions 用 `npm ci` 严格校验锁文件一致性，只推其一 = workflow 直接红 |
+| `data/feeds/*.xml` | 本机核心职责。不推 = Actions 持续消费旧 feed（对应源停更）；推送后下一轮自动补齐，去重层兜住不重复 |
+
+注意：cron 触发时间、`LLM_API_KEY`（Secret）、`LLM_BASE_URL` / `LLM_MODEL`（Variables）**只存在于 GitHub 仓库设置，本地仓库里没有对应物**——改这些去 Settings → Secrets and variables → Actions，与 push 无关。
+
+### 绝不推（推了 = 污染真相源 / 永久损伤数据）
+
+| 内容 | 后果 |
+|---|---|
+| 本地 `node src/main.mjs` 的调试产物：`data/briefs/`、`data/queue/`、`data/series/`、`data/seen.json`、`data/health.json` | 双重伤害：① 本地无 key，产出的是未研判降级版本，覆盖 Actions 的完整版本；② **`seen.json` 一旦上推，那批条目被永久标记已处理——降级直通是设计行为不重试，它们永远得不到 LLM 研判** |
+| `tools/.browser-profile/` | stealth 浏览器身份（cookie/指纹/session）。推到公开仓库 = 交出反爬身份；多机克隆共用同身份会互相顶掉 session。已 .gitignore，保持 |
+| `.env`、任何 key 材料 | 密钥纪律见「API Key 安全」。已 .gitignore |
+| 一次性探针 / 实验脚本（如 `tools/probe-yole.mjs`） | 默认本地草稿；被生产链路引用（并入 local-feeds.mjs）或具文档价值时才转正提交 |
+
+### 执行细则（防手滑，均为事故场景提炼）
+
+- 本地提交**永远点名路径**：`git add data/feeds`、`git add src tools package.json package-lock.json`。**禁止**裸 `git add data`、`git add -A`、`git commit -a`——工作区里 always 躺着本地调试产物的改动，一扫全进。`tools/local-feeds.mjs` 的自动提交同样自我约束（只 `git add data/feeds`）
+- 本地**勤 pull**：Actions 每天 01:17 UTC 都在 main 上产生 data 提交，本地落后时 feed 推送会被拒（non-fast-forward）直至同步——断供就是这么发生的。pull 前先丢弃调试产物改动：`git restore data/seen.json data/health.json data/briefs data/queue data/series`（只是草稿，丢了不心疼）
+- `node src/main.mjs` 本地跑仅限开发调试（无 key = 纯规则模式，产出的 queue/brief 仅供看格式），跑完按上一条丢弃改动
 
 ## 数据产物
 
