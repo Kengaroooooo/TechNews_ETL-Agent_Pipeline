@@ -1,0 +1,93 @@
+{
+ "checked_at": "2026-09-25T15:18:11Z",
+ "sources": [
+  {
+   "name": "EE Times",
+   "kind": "rss",
+   "url": "https://www.eetimes.com/feed/",
+   "status": 200,
+   "entries": 10,
+   "ms": 177
+  },
+  {
+   "name": "Light Reading",
+   "kind": "rss",
+   "url": "https://www.lightreading.com/rss.xml",
+   "status": 200,
+   "entries": 50,
+   "ms": 586
+  },
+  {
+   "name": "Fierce Network",
+   "kind": "rss",
+   "url": "https://www.fierce-network.com/rss/xml",
+   "status": 200,
+   "entries": 25,
+   "ms": 81
+  },
+  {
+   "name": "TrendForce",
+   "kind": "rss",
+   "url": "https://www.trendforce.com/news/feed/",
+   "status": 200,
+   "entries": 20,
+   "ms": 1245
+  },
+  {
+   "name": "SemiAnalysis",
+   "kind": "rss",
+   "url": "https://www.semianalysis.com/feed",
+   "status": 403,
+   "ms": 116
+  },
+  {
+   "name": "SemiAnalysis",
+   "kind": "rss",
+   "url": "https://semianalysis.substack.com/feed",
+   "status": 403,
+   "ms": 33
+  },
+  {
+   "name": "SemiAnalysis 备用端点",
+   "kind": "rss",
+   "url": "https://semianalysis.substack.com/feed",
+   "status": 403,
+   "ms": 21
+  },
+  {
+   "name": "SEMI",
+   "kind": "probe-only",
+   "url": "https://www.semi.org/en/news-media-press",
+   "status": 403,
+   "ms": 42
+  },
+  {
+   "name": "LightCounting",
+   "kind": "probe-only",
+   "url": "https://www.lightcounting.com/newsletters",
+   "status": 200,
+   "ms": 216
+  },
+  {
+   "name": "Yole Group",
+   "kind": "probe-only",
+   "url": "https://www.yolegroup.com/articles/",
+   "status": 202,
+   "ms": 189
+  },
+  {
+   "name": "IEEE 802.3",
+   "kind": "probe-only",
+   "url": "https://www.ieee802.org/3/",
+   "status": 200,
+   "ms": 720
+  },
+  {
+   "name": "Vast.ai API",
+   "kind": "api",
+   "url": "https://console.vast.ai/api/v0/bundles/",
+   "status": 200,
+   "ms": 276
+  }
+ ]
+}
