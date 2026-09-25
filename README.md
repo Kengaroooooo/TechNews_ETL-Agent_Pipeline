@@ -30,6 +30,7 @@ GitHub Actions 从 checkout 读 data/feeds/*.xml → 与 RSS 源同构走完整�
 ```
 
 - 本机当天没跑 = 该源当日无更新，去重层兜住节奏差异，不断供不报错
+- 依赖分工：LightCounting 纯 HTTP 提取（零依赖）；Yole 需渲染（puppeteer-core 驱动系统 Chrome + stealth 插件，依赖装在 `tools/` 独立 package，不影响根 `npm ci`；首次使用先在 `tools/` 下 `npm install`，Chrome 路径可用环境变量 `LOCAL_FEEDS_CHROME` 覆盖）
 - **接口纪律：消费方永远以仓库 main 分支为准；本机 data/ 其余产物（queue/briefs/seen 等）只是开发草稿，绝不提交；本机跑 `node src/main.mjs` 仅供开发调试**
 - 部署（PowerShell 执行一次，时间自定，建议早于 Actions 的 01:17 UTC / 北京 09:17）：
 
@@ -71,7 +72,7 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 | Vast.ai | REST | ✅ 200 | 只认 `q` 参数（o/order/limit 被 400 拒）；单查询 64 条截断；型号名带空格 |
 | IEEE 802.3 | HTML | ✅ 200 | v1 仅探测，采集器排期 v2 |
 | SEMI | HTML | ❌ 403 | 反爬拦截 |
-| Yole | HTML | ❌ 202 挑战 | JS 壳 |
+| Yole | HTML | ✅ 已由本地 feed 供给 | DataDome 202 挑战已被本机 stealth Chrome 渲染突破（住宅 IP + 固定浏览器身份是关键）；裸探测恒 202 属预期 |
 | LightCounting | HTML | ✅ 已由本地 feed 供给 | `/newsletters` 为服务端渲染页，HTTP 直取即可（注意 `/newsroom` 是伪 200 的 404 页，曾误导探测）；抓取目标可达性继续由 health.json 监控 |
 
 > 关于"换出口能否解决反爬"：Actions 换到 Azure 美国段解决**可达性与 IP 层封锁**，但 Cloudflare/DataDome 的 **JS 挑战跟的是客户端不是 IP**，数据中心 IP 风控评分反而更低——所以探测源的真实状态以 health.json 实测为准，不预设。
@@ -94,5 +95,5 @@ node src/main.mjs        # 本地跑一轮（无 key = 纯规则模式；无 GIT
 
 ## 路线图
 
-- v2：SEMI/Yole 接本地 feed 生产者（Yole 全路径 DataDome 202 挑战，需 puppeteer+stealth 渲染实验，跑通前仅探测）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
+- v2：SEMI 反爬待解（可试与 Yole 同源的本地 stealth 渲染方案）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
 - 成本闸已内建：`MAX_LLM_ITEMS` 环境变量控制单轮研判条数上限

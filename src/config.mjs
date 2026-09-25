@@ -23,6 +23,7 @@ export const PROBE_ONLY = [
   { name: 'SEMI', url: 'https://www.semi.org/en/news-media-press' },
   // 已由本地 feed 供给（tools/local-feeds.mjs）；此处仅探测抓取目标的可达性
   { name: 'LightCounting', url: 'https://www.lightcounting.com/newsletters' },
+  // 已由本地 feed 供给（stealth Chrome 渲染突破 DataDome）；裸探测恒 202 属预期，可采集性以 feed 实际产出为准
   { name: 'Yole Group', url: 'https://www.yolegroup.com/articles/' },
   { name: 'IEEE 802.3', url: 'https://www.ieee802.org/3/' }, // 本地 200 可达，采集器排期 v2
 ];
