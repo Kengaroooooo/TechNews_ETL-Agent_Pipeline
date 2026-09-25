@@ -44,8 +44,10 @@ export async function analyze(item, budgetMs = 90000) {
         return JSON.parse(raw);
       }
       if (res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
-      // 只记状态码，不回显响应体（防密钥相关信息进日志）
-      console.log(`[llm] ${item.item_id} http ${res.status}`);
+      // 记状态码 + 服务商 error.message（错误体不含密钥；截断防日志膨胀，非 JSON 体静默跳过）
+      let emsg = '';
+      try { emsg = String((await res.json())?.error?.message ?? '').slice(0, 160); } catch { /* 非 JSON 体 */ }
+      console.log(`[llm] ${item.item_id} http ${res.status}${emsg ? ` ${emsg}` : ''}`);
     } catch (ex) {
       console.log(`[llm] ${item.item_id} error ${String(ex).slice(0, 80)}`);
     }
