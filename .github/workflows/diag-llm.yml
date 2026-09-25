@@ -1,0 +1,33 @@
+name: diag-llm
+
+# 一次性诊断：对 LLM 端点发 1 次与主管线同构的请求，打印状态码与响应体，
+# 用于定位 429 的具体原因（限流/欠费/模型名）。排查后可删除本文件。
+on:
+  workflow_dispatch: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: One-shot LLM probe
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+        run: |
+          node -e '
+          const base = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
+          const model = process.env.LLM_MODEL || "deepseek-chat";
+          console.log("probe:", model, "@", base);
+          fetch(base + "/chat/completions", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + process.env.LLM_API_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({ model, temperature: 0.2, max_tokens: 16,
+              messages: [{ role: "user", content: "ping" }],
+              response_format: { type: "json_object" } }),
+            signal: AbortSignal.timeout(30000),
+          })
+          .then(async r => { console.log("HTTP", r.status); console.log((await r.text()).slice(0, 600)); })
+          .catch(e => console.log("network error:", String(e).slice(0, 200)));
+          '
