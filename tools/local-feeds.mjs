@@ -51,9 +51,61 @@ async function extractLightCounting() {
   return items;
 }
 
+// ---------- Yole：DataDome 202 挑战，需 stealth Chrome 渲染 ----------
+// 2026-09-25 实测：stealth 插件 + 本机住宅 IP + 独立 userDataDir（攒信任分）即可通过挑战；
+// 裸 HTTP 探测恒为 202 属预期。同样的代码在 GitHub Actions 的 Azure DC 出口过不去——
+// 指纹检测拦的是客户端身份，不是渲染能力，这正是渲染必须留在本机的原因。
+// puppeteer 依赖动态加载：tools/ 未 npm install 时仅 Yole 源失败，LightCounting 不受影响。
+const CHROME_PATH = process.env.LOCAL_FEEDS_CHROME
+  || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const BROWSER_PROFILE = path.join(ROOT, 'tools', '.browser-profile'); // 固定身份攒 DataDome 信任分
+
+async function extractYole() {
+  const [{ default: puppeteer }, { default: StealthPlugin }] = await Promise.all([
+    import('puppeteer-extra'),
+    import('puppeteer-extra-plugin-stealth'),
+  ]);
+  puppeteer.use(StealthPlugin());
+  const browser = await puppeteer.launch({
+    executablePath: CHROME_PATH,
+    headless: 'new',
+    userDataDir: BROWSER_PROFILE,
+    args: ['--no-sandbox', '--disable-blink-features=AutomationControlled'],
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1366, height: 900 });
+    const resp = await page.goto('https://www.yolegroup.com/articles/', {
+      waitUntil: 'networkidle0', timeout: 60000,
+    });
+    if (resp.status() !== 200) throw new Error(`http ${resp.status}（DataDome 挑战未通过？）`);
+    await new Promise(r => setTimeout(r, 4000)); // 等 FacetWP 列表与懒加载稳定
+    const raw = await page.evaluate(() =>
+      [...document.querySelectorAll('a.card-post')].slice(0, 30).map(a => ({
+        href: a.href,
+        title: a.querySelector('.card-post__title')?.textContent?.trim() || '',
+        dateText: a.querySelector('time.card-post__date')?.textContent?.trim() || '',
+      })));
+    const items = [];
+    for (const r of raw) {
+      if (!r.href || !r.title) continue;
+      const m = r.dateText.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/);
+      const d = m ? new Date(Date.UTC(+m[3], MONTHS[m[1].toLowerCase()] ?? 0, +m[2], 12)) : null;
+      items.push({
+        title: decodeEntities(r.title),
+        link: r.href,
+        pubDate: d ? d.toUTCString() : undefined,
+      });
+      if (items.length >= MAX_ITEMS) break;
+    }
+    if (!items.length) throw new Error('渲染成功但未提取到文章卡片（页面结构可能已变化）');
+    return items;
+  } finally {
+    await browser.close();
+  }
+}
+
 // ---------- 源注册表 ----------
-// Yole：全路径 DataDome 202 挑战（连住宅 IP 也拦），需 puppeteer+stealth 渲染实验，
-// 跑通前留在 PROBE_ONLY 仅探测。
 const SOURCES = [
   {
     file: 'lightcounting.xml',
@@ -63,6 +115,15 @@ const SOURCES = [
       description: 'LightCounting LightTrends newsletters（本地 feed 生产者抓取）',
     },
     extract: extractLightCounting,
+  },
+  {
+    file: 'yole.xml',
+    channel: {
+      title: 'Yole Group',
+      link: 'https://www.yolegroup.com/articles/',
+      description: 'Yole Group Industry Insights（本地 feed 生产者渲染抓取）',
+    },
+    extract: extractYole,
   },
 ];
 
