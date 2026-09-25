@@ -11,3 +11,8 @@
 - **runner 固定 ubuntu-24.04、actions 升 v5**（消除 Node 20 弃用警告与 ubuntu-latest 迁移变数）；SemiAnalysis 备用端点纳入健康探测。
 - **对外信息面整理**：文档与源码注释统一为项目功能描述；仓库历史整理为单一初始提交。跨项目接口文档由消费侧自行维护，不在本仓库存放。
 - **去重索引重置**：首批队列条目为无 LLM key 环境产物（全 P2、摘要为空），重置 seen.json 使存量条目在下次运行重新过筛，端到端验证 LLM 研判层。
+- **全面检视修复**（产出腐化 + 静默丢数据 + 文档对齐）：
+  - 采集层：`stripTags` 实体解码补齐数字/十六进制实体与 `&apos;`，`&amp;` 改最后解码（修复双重还原）；新增 `asText` 拍平 RSS 对象字段（修复 Fierce Network title 内嵌 `<a>` 元素导致标题 `[object Object]`）；Atom `<link href>` 改 `ignoreAttributes:false` + 属性提取（原实现 href 被丢、链接变垃圾）；hash 回落键加 content 前缀（同源无链接无标题条目碰撞）；分位数索引 `floor` 改 `ceil(n·f)−1`（修复 n=64 时 p50 取第 33 个值的偏差）；采集失败改为逐端点打印诊断日志。
+  - 可靠性：去重索引提交后置到全部产出落盘之后（中途失败条目下轮可重试，不再永久丢）；LLM 研判加总时间预算闸（15min < workflow 25min 超时，防超时重试拖垮整轮，超预算条目降级直通）；`MAX_LLM_ITEMS` 溢出条目不再静默丢弃，降级直通 queue 并标 `llm_skipped: true`；`seen.json` 解析失败改为告警而非静默清零；价格时序剔除失败读数。
+  - 冗余/探测：RSS 主端点健康由采集诊断随采记录，取消二次全量拉取；删除关键词 `gb200`/`silicon photonics`（分别被 `b200`/`photonic` 覆盖）、`AUTO_PASS_SOURCES` 中的死配置 `Vast.ai`；workflow 移除与代码默认值重复的 `MAX_LLM_ITEMS` 注入。
+  - 文档：README 队列说明对齐实际（全优先级 + `llm_skipped` 字段）、源健康表按 health.json 实测修正（LightCounting 200/JS 壳）、config 注释同步。

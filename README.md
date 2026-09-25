@@ -12,7 +12,7 @@
   → 二级 LLM 研判（OpenAI 兼容 API：实体抽取/TL;DR/P0-P2 分级；缺 key 自动降级纯规则）
   → 输出：
       data/series/gpu_prices.jsonl   GPU 挂牌价格时序
-      data/queue/YYYY-MM-DD.jsonl    P0/P1 条目队列（通用下游 JSONL 接口，格式见下）
+      data/queue/YYYY-MM-DD.jsonl    过筛条目队列（P0/P1/P2 + 未研判降级直通条目，通用下游 JSONL 接口，格式见下）
       data/briefs/YYYY-MM-DD.md      每日简报（人读）
       GitHub Issues                  P0 即时警报（同题去重）
       data/health.json               全端点健康探测（每次运行更新）
@@ -22,7 +22,7 @@
 
 ### data/queue/YYYY-MM-DD.jsonl —— 条目接口
 
-每行一个 P0/P1 条目：
+每行一个过筛条目（规则初筛通过即入队，不再限于 P0/P1）：
 
 | 字段 | 说明 |
 |---|---|
@@ -31,6 +31,7 @@
 | title / category / priority | 规范化标题 / 分类 / P0-P2 |
 | entities / tldr / key_takeaways / agent_comment | LLM 生成的研判摘要（参考信息，非事实口径） |
 | keywords_hit | 一级初筛命中词 |
+| llm_skipped | LLM 未研判直通（超上限/超时预算/研判失败），字段值 `true` 时其余 LLM 字段为空 |
 | content | 清洗后原文快照（≤8000 字符） |
 
 ### 其他文件
@@ -48,7 +49,9 @@
 | SemiAnalysis | RSS | ⚠️ CF 盾 | 主域名 curl 403；备 `semianalysis.substack.com/feed` 自动切换 |
 | Vast.ai | REST | ✅ 200 | 只认 `q` 参数（o/order/limit 被 400 拒）；单查询 64 条截断；型号名带空格 |
 | IEEE 802.3 | HTML | ✅ 200 | v1 仅探测，采集器排期 v2 |
-| SEMI / LightCounting / Yole | HTML | ❌ 反爬 | 403 / JS 壳 / 202 挑战；Playwright 渲染排期 v2 |
+| SEMI | HTML | ❌ 403 | 反爬拦截 |
+| Yole | HTML | ❌ 202 挑战 | JS 壳 |
+| LightCounting | HTML | ⚠️ 200 | 端口可达，正文疑似 JS 壳；实际可采集性以 data/health.json 持续实测为准 |
 
 > 关于"换出口能否解决反爬"：Actions 换到 Azure 美国段解决**可达性与 IP 层封锁**，但 Cloudflare/DataDome 的 **JS 挑战跟的是客户端不是 IP**，数据中心 IP 风控评分反而更低——所以探测源的真实状态以 health.json 实测为准，不预设。
 

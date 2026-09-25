@@ -9,6 +9,7 @@ export function append(readings) {
   mkdirSync(path.dirname(PATH), { recursive: true });
   const ts = utcnow();
   for (const rec of readings) {
+    if (rec.error || rec.p50 === undefined) continue; // 失败读数不进时序（保留缺口语义）
     appendFileSync(PATH, JSON.stringify({ ts, ...rec }) + '\n');
   }
 }

@@ -14,8 +14,11 @@ const SYSTEM_PROMPT = `你是一名专注于半导体制造、先进封装、光
 
 export const available = () => Boolean(process.env.LLM_API_KEY);
 
-export async function analyze(item) {
+// budgetMs：本条的剩余研判预算（总预算由 main 计算，< workflow 超时，防 LLM 超时重试拖垮整轮）。
+// 预算耗尽返回 null，条目降级为规则模式直通输出。
+export async function analyze(item, budgetMs = 90000) {
   if (!available()) return null;
+  const deadline = Date.now() + budgetMs;
   const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
   const model = process.env.LLM_MODEL || 'deepseek-chat';
   const messages = [
@@ -25,11 +28,13 @@ export async function analyze(item) {
   const headers = { 'Authorization': `Bearer ${process.env.LLM_API_KEY}`, 'Content-Type': 'application/json' };
   let useJsonMode = true; // provider 不支持 response_format 时自动去掉重试（GLM 等兼容性垫片）
   for (let attempt = 0; attempt < 3; attempt++) {
+    const left = deadline - Date.now();
+    if (left < 5000) return null; // 预算耗尽，剩余条目留待下一轮
     try {
       const payload = { model, temperature: 0.2, messages,
         ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
       const res = await fetch(`${base}/chat/completions`, {
-        method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(90000),
+        method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(90000, left)),
       });
       if (res.status === 200) {
         const j = await res.json();

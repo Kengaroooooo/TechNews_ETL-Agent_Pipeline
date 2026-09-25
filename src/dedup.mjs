@@ -6,10 +6,13 @@ import { DATA_DIR, DEDUP_RETAIN_DAYS } from './config.mjs';
 const PATH = path.join(DATA_DIR, 'seen.json');
 
 export function load() {
-  if (existsSync(PATH)) {
-    try { return JSON.parse(readFileSync(PATH, 'utf8')); } catch { return {}; }
+  if (!existsSync(PATH)) return {};
+  try {
+    return JSON.parse(readFileSync(PATH, 'utf8'));
+  } catch (ex) {
+    console.warn(`[dedup] seen.json 损坏，索引清零（本轮将出现重复条目）：${String(ex).slice(0, 80)}`);
+    return {};
   }
-  return {};
 }
 
 export function save(idx) {

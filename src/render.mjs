@@ -27,7 +27,8 @@ export function writeBrief(runTs, readings, graded, stats, llmOn) {
       lines.push('');
     }
   }
-  lines.push(`统计：本轮新增 ${stats.new} 条，过筛 ${stats.passed} 条（P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}），未过筛 ${stats.noise} 条；LLM 研判层：${llmOn ? '开' : '关（缺 key，纯规则模式）'}\n`);
+  const skippedNote = llmOn ? `LLM 未研判 ${stats.skipped} 条（超上限/超时预算/研判失败，已降级直通）；` : '';
+  lines.push(`统计：本轮新增 ${stats.new} 条，过筛 ${stats.passed} 条（P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}），未过筛 ${stats.noise} 条；${skippedNote}LLM 研判层：${llmOn ? '开' : '关（缺 key，纯规则模式）'}\n`);
   const p = path.join(BRIEF_DIR, `${runTs.slice(0, 10)}.md`);
   appendFileSync(p, lines.join('\n'));
   return p;
