@@ -153,9 +153,17 @@ function toRss(channel, items) {
   return lines.filter(Boolean).join('\n') + '\n';
 }
 
-// ---------- 提交推送（仅 data/feeds，绝不带本地其余产物） ----------
+// ---------- 提交推送（仅 data/feeds，绝不带本地其余产物；本机无需日常 pull） ----------
 function commitAndPush() {
   const git = args => execFileSync('git', args, { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] }).toString().trim();
+  // 先清 data/ 其余产物的本地草稿（main.mjs 调试残留）：不清会阻塞 rebase 或在
+  // autostash 回放时冲突。只点名产物路径，代码与 feeds 一概不碰（README 同步规范）
+  const drafts = ['data/briefs', 'data/queue', 'data/series', 'data/seen.json', 'data/health.json'];
+  const dirty = git(['status', '--porcelain', '--', ...drafts]);
+  if (dirty) console.log(`[push] 丢弃本地 data 草稿（调试产物）:\n${dirty}`);
+  // restore 逐路径执行：多路径是全有或全无，一条未跟踪会让其余路径的丢弃整体失效
+  for (const p of drafts) { try { git(['restore', '--', p]); } catch { /* 未跟踪路径跳过 */ } }
+  git(['clean', '-fdq', '--', ...drafts]);
   git(['add', 'data/feeds']);
   if (!git(['diff', '--cached', '--name-only'])) {
     console.log('[push] feeds 无变化，跳过提交');
@@ -163,8 +171,12 @@ function commitAndPush() {
   }
   const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
   git(['commit', '-m', `feeds: 本地抓取 ${stamp} UTC`]);
-  git(['push']);
-  console.log('[push] 已提交并推送 data/feeds');
+  // 同步收敛在推送时刻：远端 main 每天有 Actions 的 data 提交，但本地（feeds+代码）与
+  // 远端（data 产物）路径不相交，rebase 必然干净；--autostash 保住未提交的代码 WIP。
+  // sslBackend=openssl：本机 schannel 对 github.com TLS 握手不稳定
+  git(['-c', 'http.sslBackend=openssl', 'pull', '--rebase', '--autostash', 'origin', 'main']);
+  git(['-c', 'http.sslBackend=openssl', 'push']);
+  console.log('[push] 已同步远端并推送 data/feeds');
 }
 
 // ---------- 主流程：逐源提取 → 写 feed → 汇总提交 ----------

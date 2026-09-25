@@ -65,9 +65,10 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 
 ### 执行细则（防手滑，均为事故场景提炼）
 
-- 本地提交**永远点名路径**：`git add data/feeds`、`git add src tools package.json package-lock.json`。**禁止**裸 `git add data`、`git add -A`、`git commit -a`——工作区里 always 躺着本地调试产物的改动，一扫全进。`tools/local-feeds.mjs` 的自动提交同样自我约束（只 `git add data/feeds`）
-- 本地**勤 pull**：Actions 每天 01:17 UTC 都在 main 上产生 data 提交，本地落后时 feed 推送会被拒（non-fast-forward）直至同步——断供就是这么发生的。pull 前先丢弃调试产物改动：`git restore data/seen.json data/health.json data/briefs data/queue data/series`（只是草稿，丢了不心疼）
-- `node src/main.mjs` 本地跑仅限开发调试（无 key = 纯规则模式，产出的 queue/brief 仅供看格式），跑完按上一条丢弃改动
+- 本地提交**永远点名路径**：`git add data/feeds`、`git add src tools package.json package-lock.json`。**禁止**裸 `git add data`、`git add -A`、`git commit -a`——工作区里常年躺着本地调试产物的改动，一扫全进。`tools/local-feeds.mjs` 的自动提交同样自我约束（只 `git add data/feeds`）
+- 本地**永远不需要主动 pull**：同步收敛在推送时刻。`tools/local-feeds.mjs` 推送前自动完成「丢弃 data 草稿（逐路径 restore + clean，防一条未跟踪拖垮全部）→ `pull --rebase --autostash` → `push`」——本地改 feeds+代码、远端只改 data 产物，路径不相交，rebase 必然干净；`--autostash` 保住未提交的代码 WIP
+- 手动推代码被拒 non-fast-forward 时（Actions 每天在 main 产生 data 提交，必然偶发）同样一句：`git pull --rebase --autostash origin main && git push`。极小概率 stash 回放冲突——来源只会是 data 草稿，`git restore` 掉同名草稿文件重跑即可（仓库已配 `pull.rebase` + `rebase.autoStash`，裸 `git pull` 也安全）
+- `node src/main.mjs` 本地跑仅限开发调试（无 key = 纯规则模式，产出的 queue/brief 仅供看格式）；跑完留下的 data 改动无需手动清理，feed 任务下次推送前自动丢弃并打日志
 
 ## 数据产物
 
