@@ -1,0 +1,49 @@
+name: pipeline
+
+on:
+  schedule:
+    - cron: "17 1 * * *" # 每日一次（UTC 01:17 = 北京 09:17，覆盖隔夜美股时段动态）
+  workflow_dispatch: {}    # 手动触发（仓库 write 权限者；fork PR 拿不到 secrets）
+
+permissions:
+  contents: write # 提交 data/ 回仓库（GITHUB_TOKEN 的推送不会级联触发工作流）
+  issues: write   # P0 告警开 Issue
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    runs-on: ubuntu-24.04 # 固定版本，不让 latest 变移动靶（2026-10 起 latest 迁 Ubuntu 26）
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run pipeline
+        env:
+          # LLM_API_KEY 为加密 Secret（Settings → Secrets and variables → Actions 设置）；
+          # LLM_BASE_URL / LLM_MODEL 为普通 Variables（非敏感，缺省 = DeepSeek）
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          MAX_LLM_ITEMS: "20"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: node src/main.mjs
+
+      - name: Commit & push data
+        run: |
+          git config user.name "pipeline-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "data: cycle $(date -u +%F_%H:%M)"
+          git push

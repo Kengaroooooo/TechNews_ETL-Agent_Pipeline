@@ -1,0 +1,50 @@
+// 二级 LLM 研判（OpenAI 兼容 /chat/completions，严格 JSON 输出）。
+//
+// 密钥纪律：LLM_API_KEY 只从环境变量读取（GitHub Actions Secrets 注入），
+// 不落代码、不落文件、不打印；缺 key 时返回 null，管线自动降级为纯规则模式。
+// 默认 DeepSeek（充值制限额=成本保险丝）；换 Moonshot/GLM/OpenAI 只需改
+// GitHub Variables: LLM_BASE_URL / LLM_MODEL。
+const SYSTEM_PROMPT = `你是一名专注于半导体制造、先进封装、光通信互联与 AI 算力硬件的资深行业情报分析师。
+对输入的产业信源内容做深度加工与研判。核心原则：
+1. 严谨客观，过滤公关辞令、模糊吹捧与情绪化表达；
+2. 优先提取硬指标：制程节点、封装形式(CoWoS/InFO/SoIC)、光模块速率(400G/800G/1.6T)、功耗(W)、成本/良率(%)、芯片型号(H100/B200/GB200等)及关键厂商；
+3. 严格基于输入材料输出，禁止无根据推测，未明确的信息标注"未披露"；
+4. 只输出严格 JSON，字段固定为：
+{"title":"中文规范化标题","category":"Semiconductor|Optical_Comm|GPU_Compute|General","priority":"P0|P1|P2","entities":{"companies":[],"tech":[],"metrics":[]},"tldr":"50字内核心结论","key_takeaways":["要点1","要点2"],"agent_comment":"分析师视角一句话点评（核心看点与风险）"}`;
+
+export const available = () => Boolean(process.env.LLM_API_KEY);
+
+export async function analyze(item) {
+  if (!available()) return null;
+  const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
+  const model = process.env.LLM_MODEL || 'deepseek-chat';
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, 3000)}` },
+  ];
+  const headers = { 'Authorization': `Bearer ${process.env.LLM_API_KEY}`, 'Content-Type': 'application/json' };
+  let useJsonMode = true; // provider 不支持 response_format 时自动去掉重试（GLM 等兼容性垫片）
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const payload = { model, temperature: 0.2, messages,
+        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
+      const res = await fetch(`${base}/chat/completions`, {
+        method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(90000),
+      });
+      if (res.status === 200) {
+        const j = await res.json();
+        // 容忍 ```json 围栏（json mode 关闭时模型可能加围栏）
+        const raw = String(j.choices[0].message.content).trim()
+          .replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+        return JSON.parse(raw);
+      }
+      if (res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
+      // 只记状态码，不回显响应体（防密钥相关信息进日志）
+      console.log(`[llm] ${item.item_id} http ${res.status}`);
+    } catch (ex) {
+      console.log(`[llm] ${item.item_id} error ${String(ex).slice(0, 80)}`);
+    }
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  return null;
+}

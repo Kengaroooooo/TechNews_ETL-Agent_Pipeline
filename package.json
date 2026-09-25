@@ -1,0 +1,14 @@
+{
+  "name": "technews-etl-agent-pipeline",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "description": "半导体/光通信/GPU 算力信源级联采集与研判管线（GitHub Actions 定时运行）",
+  "scripts": {
+    "start": "node src/main.mjs"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.0"
+  }
+}
