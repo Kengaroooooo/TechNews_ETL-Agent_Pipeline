@@ -12,7 +12,19 @@ const SYSTEM_PROMPT = `你是一名专注于半导体制造、先进封装、光
 4. 只输出严格 JSON，字段固定为：
 {"title":"中文规范化标题","category":"Semiconductor|Optical_Comm|GPU_Compute|General","priority":"P0|P1|P2","entities":{"companies":[],"tech":[],"metrics":[]},"tldr":"50字内核心结论","key_takeaways":["要点1","要点2"],"agent_comment":"分析师视角一句话点评（核心看点与风险）"}`;
 
-export const available = () => Boolean(process.env.LLM_API_KEY);
+// 熔断（进程级状态，作用域 = 一轮管线）：欠费/鉴权类错误重试无意义，命中即停整轮；
+// 其余 429（真限流）可能是瞬时抖动，连续 6 次（约两条的额度）才停。停后剩余条目
+// 直接降级规则模式，不再空耗请求与预算；下一轮进程重启自然复位。
+let tripped = false;
+let streak429 = 0;
+
+function trip(status, ecode, emsg) {
+  tripped = true;
+  console.log(`[llm] breaker: http ${status}${ecode ? ` code ${ecode}` : ''} ${emsg}——本轮剩余条目跳过 LLM 研判，降级规则模式`);
+  return null;
+}
+
+export const available = () => Boolean(process.env.LLM_API_KEY) && !tripped;
 
 // budgetMs：本条的剩余研判预算（总预算由 main 计算，< workflow 超时，防 LLM 超时重试拖垮整轮）。
 // 预算耗尽返回 null，条目降级为规则模式直通输出。
@@ -37,6 +49,7 @@ export async function analyze(item, budgetMs = 90000) {
         method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(90000, left)),
       });
       if (res.status === 200) {
+        streak429 = 0; // 成功清零限流连击
         const j = await res.json();
         // 容忍 ```json 围栏（json mode 关闭时模型可能加围栏）
         const raw = String(j.choices[0].message.content).trim()
@@ -44,10 +57,13 @@ export async function analyze(item, budgetMs = 90000) {
         return JSON.parse(raw);
       }
       if (res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
-      // 记状态码 + 服务商 error.message（错误体不含密钥；截断防日志膨胀，非 JSON 体静默跳过）
-      let emsg = '';
-      try { emsg = String((await res.json())?.error?.message ?? '').slice(0, 160); } catch { /* 非 JSON 体 */ }
-      console.log(`[llm] ${item.item_id} http ${res.status}${emsg ? ` ${emsg}` : ''}`);
+      // 记状态码 + 服务商错误码/消息（错误体不含密钥；截断防日志膨胀，非 JSON 体静默跳过）
+      let ecode = '', emsg = '';
+      try { const e = (await res.json())?.error ?? {}; ecode = String(e.code ?? ''); emsg = String(e.message ?? '').slice(0, 160); } catch { /* 非 JSON 体 */ }
+      console.log(`[llm] ${item.item_id} http ${res.status}${ecode ? ` code ${ecode}` : ''}${emsg ? ` ${emsg}` : ''}`);
+      // 熔断判定：欠费(1113)/鉴权(401/402/403) 即停；其余 429 连续 6 次停
+      if ([401, 402, 403].includes(res.status) || ecode === '1113') return trip(res.status, ecode, emsg);
+      if (res.status === 429 && ++streak429 >= 6) return trip(res.status, ecode, emsg);
     } catch (ex) {
       console.log(`[llm] ${item.item_id} error ${String(ex).slice(0, 80)}`);
     }
