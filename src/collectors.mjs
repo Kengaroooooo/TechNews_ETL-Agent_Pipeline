@@ -1,8 +1,11 @@
-// 三类采集器：RSS（fast-xml-parser）、Vast.ai REST、健康探测。
+// 三类采集器：RSS（fast-xml-parser）、Vast.ai REST、健康探测 + 本地 feed（data/feeds/*.xml）。
 import { createHash } from 'node:crypto';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import path from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
 import {
-  USER_AGENT, RSS_SOURCES, PROBE_ONLY, VASTAI_ENDPOINT, VASTAI_MODELS, RSS_PER_SOURCE, utcnow,
+  USER_AGENT, RSS_SOURCES, PROBE_ONLY, VASTAI_ENDPOINT, VASTAI_MODELS,
+  RSS_PER_SOURCE, LOCAL_FEEDS_DIR, utcnow,
 } from './config.mjs';
 
 // ignoreAttributes:false 才能拿到 Atom <link href>；属性键 @_ 前缀，消费处须自行过滤。
@@ -150,6 +153,36 @@ export async function fetchVastai(models = VASTAI_MODELS) {
     await sleep(1000); // 礼貌间隔
   }
   return readings;
+}
+
+// 本地 feed（data/feeds/*.xml）：由 tools/local-feeds.mjs 在本机生产并提交进仓库。
+// 管线从磁盘直接读取（Actions 的 checkout 自带），缺目录/缺文件自动降级跳过。
+export function fetchLocalFeeds(dir = LOCAL_FEEDS_DIR) {
+  if (!existsSync(dir)) return { items: [], files: [] };
+  const files = readdirSync(dir).filter(f => f.endsWith('.xml'));
+  const items = [];
+  for (const f of files) {
+    try {
+      const parsed = xp.parse(readFileSync(path.join(dir, f), 'utf8'));
+      const channel = parsed?.rss?.channel ?? {};
+      let entries = channel.item ?? [];
+      if (!Array.isArray(entries)) entries = entries ? [entries] : [];
+      const source = asText(channel.title) || f.replace(/\.xml$/, '');
+      for (const e of entries.slice(0, RSS_PER_SOURCE)) {
+        const it = makeItem({
+          source,
+          title: e.title ?? '',
+          link: e.link ?? '',
+          content: e.description ?? '',
+          published: e.pubDate ?? '',
+        });
+        if (it.title || it.content) items.push(it);
+      }
+    } catch (ex) {
+      console.log(`[localfeeds] ${f} 解析失败: ${String(ex).slice(0, 80)}`);
+    }
+  }
+  return { items, files };
 }
 
 // 探测不参与采集的端点（反爬源、API、RSS 备用端点）；RSS 主端点的健康由 fetchRss 的

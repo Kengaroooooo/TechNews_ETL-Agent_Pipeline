@@ -5,7 +5,7 @@
 ## 架构（级联过滤）
 
 ```
-数据源层（RSS ×5 / Vast.ai REST / 探测源 ×4）
+数据源层（RSS ×5 / Vast.ai REST / 本地 feed ×1 / 探测源 ×4）
   → 采集与清洗（HTML 剥除、归一 StandardItem）
   → 去重（URL-hash，data/seen.json，30 天滚动窗口）
   → 一级规则初筛（关键词库 + 高信噪比源白名单；未过筛计噪声丢弃）
@@ -17,6 +17,27 @@
       GitHub Issues                  P0 即时警报（同题去重）
       data/health.json               全端点健康探测（每次运行更新）
 ```
+
+## 本地 feed 生产者（反爬/动态源）
+
+反爬与动态页面过不了客户端指纹检测（拦客户端不拦 IP，GitHub 出口属 Azure 数据中心段，机器人黑名单常客；详见"源健康"注），由**本机**完成提取、以文件形式经仓库供给 Actions——零服务暴露、零隧道、零月费：
+
+```
+本机（Windows 计划任务每日一次 → tools/local-feeds.mjs）
+  提取（HTTP 直取或 puppeteer 渲染）→ data/feeds/*.xml（标准 RSS 2.0）→ git push（只提交 data/feeds）
+        ↓ 仓库 = 唯一真相源
+GitHub Actions 从 checkout 读 data/feeds/*.xml → 与 RSS 源同构走完整管线
+```
+
+- 本机当天没跑 = 该源当日无更新，去重层兜住节奏差异，不断供不报错
+- **接口纪律：消费方永远以仓库 main 分支为准；本机 data/ 其余产物（queue/briefs/seen 等）只是开发草稿，绝不提交；本机跑 `node src/main.mjs` 仅供开发调试**
+- 部署（PowerShell 执行一次，时间自定，建议早于 Actions 的 01:17 UTC / 北京 09:17）：
+
+```powershell
+schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.exe\" \"<仓库路径>\tools\local-feeds.mjs\"" /sc daily /st 09:00
+```
+
+  并在任务属性勾选"如果错过了计划开始时间，请尽快启动任务"（关机日开机后补跑）。
 
 ## 数据产物
 
@@ -51,7 +72,7 @@
 | IEEE 802.3 | HTML | ✅ 200 | v1 仅探测，采集器排期 v2 |
 | SEMI | HTML | ❌ 403 | 反爬拦截 |
 | Yole | HTML | ❌ 202 挑战 | JS 壳 |
-| LightCounting | HTML | ⚠️ 200 | 端口可达，正文疑似 JS 壳；实际可采集性以 data/health.json 持续实测为准 |
+| LightCounting | HTML | ✅ 已由本地 feed 供给 | `/newsletters` 为服务端渲染页，HTTP 直取即可（注意 `/newsroom` 是伪 200 的 404 页，曾误导探测）；抓取目标可达性继续由 health.json 监控 |
 
 > 关于"换出口能否解决反爬"：Actions 换到 Azure 美国段解决**可达性与 IP 层封锁**，但 Cloudflare/DataDome 的 **JS 挑战跟的是客户端不是 IP**，数据中心 IP 风控评分反而更低——所以探测源的真实状态以 health.json 实测为准，不预设。
 
@@ -73,5 +94,5 @@ node src/main.mjs        # 本地跑一轮（无 key = 纯规则模式；无 GIT
 
 ## 路线图
 
-- v2：Playwright 无头浏览器渲染（解锁 SEMI/Yole/LightCounting 的 JS 挑战）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
+- v2：SEMI/Yole 接本地 feed 生产者（Yole 全路径 DataDome 202 挑战，需 puppeteer+stealth 渲染实验，跑通前仅探测）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
 - 成本闸已内建：`MAX_LLM_ITEMS` 环境变量控制单轮研判条数上限

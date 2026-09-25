@@ -16,3 +16,4 @@
   - 可靠性：去重索引提交后置到全部产出落盘之后（中途失败条目下轮可重试，不再永久丢）；LLM 研判加总时间预算闸（15min < workflow 25min 超时，防超时重试拖垮整轮，超预算条目降级直通）；`MAX_LLM_ITEMS` 溢出条目不再静默丢弃，降级直通 queue 并标 `llm_skipped: true`；`seen.json` 解析失败改为告警而非静默清零；价格时序剔除失败读数。
   - 冗余/探测：RSS 主端点健康由采集诊断随采记录，取消二次全量拉取；删除关键词 `gb200`/`silicon photonics`（分别被 `b200`/`photonic` 覆盖）、`AUTO_PASS_SOURCES` 中的死配置 `Vast.ai`；workflow 移除与代码默认值重复的 `MAX_LLM_ITEMS` 注入。
   - 文档：README 队列说明对齐实际（全优先级 + `llm_skipped` 字段）、源健康表按 health.json 实测修正（LightCounting 200/JS 壳）、config 注释同步。
+- **本地 feed 生产者上线（反爬源架构）**：确立"本机产原料、Actions 加工、仓库为唯一真相源"的数据流——新增 `tools/local-feeds.mjs`（Windows 计划任务每日触发，提取 → `data/feeds/*.xml` 标准 RSS → 只提交 data/feeds 推送），管线新增 `fetchLocalFeeds()` 从 checkout 直接消费。侦察发现 LightCounting `/newsletters` 实为服务端渲染（非 JS 壳，HTTP 直取即可，43 条无分页），而 `/newsroom` 是 SPA 伪 200 的 404 页（此前误导了健康探测，已修正探测 URL）；首个 feed 实跑提取 15 条，管线端到端验证 4 条过筛入队（cpo/optical 命中）。Yole 全路径 DataDome 202（连住宅 IP 也拦），留 PROBE_ONLY 待 puppeteer+stealth 实验。新增接口纪律：消费方以仓库 main 为准，本机其余 data/ 产物只是开发草稿不提交。

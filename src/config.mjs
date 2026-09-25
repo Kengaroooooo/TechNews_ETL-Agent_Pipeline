@@ -21,7 +21,8 @@ export const RSS_SOURCES = [
 // 注：LightCounting 探测为 200（可达），但正文疑似 JS 壳，实际可采集性待 v2 渲染层验证
 export const PROBE_ONLY = [
   { name: 'SEMI', url: 'https://www.semi.org/en/news-media-press' },
-  { name: 'LightCounting', url: 'https://www.lightcounting.com/newsroom' },
+  // 已由本地 feed 供给（tools/local-feeds.mjs）；此处仅探测抓取目标的可达性
+  { name: 'LightCounting', url: 'https://www.lightcounting.com/newsletters' },
   { name: 'Yole Group', url: 'https://www.yolegroup.com/articles/' },
   { name: 'IEEE 802.3', url: 'https://www.ieee802.org/3/' }, // 本地 200 可达，采集器排期 v2
 ];
@@ -47,5 +48,8 @@ export const DEDUP_RETAIN_DAYS = 30;     // 去重索引保留窗口
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const DATA_DIR = path.join(ROOT, 'data');
+// 本地 feed（data/feeds/*.xml）：由 tools/local-feeds.mjs 在本机生产并提交进仓库，
+// 管线（本地或 Actions）从磁盘直接读取，无需本机在线、无需暴露服务。
+export const LOCAL_FEEDS_DIR = path.join(DATA_DIR, 'feeds');
 
 export const utcnow = () => new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');

@@ -65,6 +65,11 @@ async function main() {
     items.push(...got);
     health.push(...diag);
   }
+  // 1b. 本地 feed（data/feeds/*.xml，本机定时任务生产并提交；目录缺失自动跳过）
+  const local = collectors.fetchLocalFeeds();
+  if (local.files.length) console.log(`[collect] local feeds: ${local.items.length} items from ${local.files.join(', ')}`);
+  items.push(...local.items);
+
   health.push(...await collectors.probeEndpoints());
   writeHealth(health);
   const readings = await collectors.fetchVastai();
