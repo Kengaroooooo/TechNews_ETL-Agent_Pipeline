@@ -16,7 +16,8 @@ concurrency:
 jobs:
   cycle:
     runs-on: ubuntu-24.04 # 固定版本，不让 latest 变移动靶（2026-10 起 latest 迁 Ubuntu 26）
-    timeout-minutes: 25
+    # job 超时可调（PIPELINE_TIMEOUT_MINUTES Variable，缺省 25）——LLM 预算会被联动 clamp 到超时-6min
+    timeout-minutes: ${{ fromJSON(vars.PIPELINE_TIMEOUT_MINUTES || '25') }}
     steps:
       - uses: actions/checkout@v5
 
@@ -30,14 +31,16 @@ jobs:
       - name: Run pipeline
         env:
           # LLM_API_KEY 为加密 Secret（Settings → Secrets and variables → Actions 设置）；
-          # LLM_BASE_URL / LLM_MODEL / LLM_PROTOCOL / MAX_LLM_ITEMS / LLM_MAX_CONTENT_CHARS
-          # 为普通 Variables（非敏感，均可缺省：DeepSeek / 自动判协议 / 不限条数 / 自动探测）
+          # 其余为普通 Variables（非敏感，均可缺省：DeepSeek / 自动判协议 / 不限条数 /
+          # 内容窗口自动探测 / LLM 预算 15min / job 超时 25min，预算与超时联动见 src/config.mjs）
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
           LLM_PROTOCOL: ${{ vars.LLM_PROTOCOL }}
           MAX_LLM_ITEMS: ${{ vars.MAX_LLM_ITEMS }}
           LLM_MAX_CONTENT_CHARS: ${{ vars.LLM_MAX_CONTENT_CHARS }}
+          LLM_BUDGET_MINUTES: ${{ vars.LLM_BUDGET_MINUTES }}
+          PIPELINE_TIMEOUT_MINUTES: ${{ vars.PIPELINE_TIMEOUT_MINUTES }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: node src/main.mjs

@@ -43,7 +43,13 @@ export const KEYWORDS = [
 ];
 
 export const MAX_LLM_ITEMS = Number(process.env.MAX_LLM_ITEMS || 0) || Infinity; // 单轮 LLM 研判条数上限。缺省不限制（真正的闸是 LLM_BUDGET_MS 时间预算）；设正整数可恢复条数闸
-export const LLM_BUDGET_MS = 15 * 60 * 1000; // LLM 研判总时间闸（workflow 超时 25min 的 60%，留出采集/输出余量）
+// LLM 预算与 job 超时联动：预算（LLM_BUDGET_MINUTES，缺省 15）封顶为 job 超时（PIPELINE_TIMEOUT_MINUTES，
+// 缺省 25）减 6 分钟——预留采集/输出/提交时间，防 LLM 拖到 job 超时被杀导致整轮产出丢失
+const JOB_TIMEOUT_MIN = Number(process.env.PIPELINE_TIMEOUT_MINUTES || 25);
+export const LLM_BUDGET_MS = Math.min(
+  Number(process.env.LLM_BUDGET_MINUTES || 0) > 0 ? Number(process.env.LLM_BUDGET_MINUTES) * 60000 : 15 * 60000,
+  Math.max(1, JOB_TIMEOUT_MIN - 6) * 60000,
+);
 export const RSS_PER_SOURCE = 200;       // 每源每轮取最新 N 条。不设实质限制（去重挡重复，成本闸在 MAX_LLM_ITEMS/内容截断），只防病态 feed（误配返回上万条）打爆内存与 seen.json
 export const DEDUP_RETAIN_DAYS = 30;     // 去重索引保留窗口
 
