@@ -1,9 +1,10 @@
-// 二级 LLM 研判（OpenAI 兼容 /chat/completions，严格 JSON 输出）。
+// 二级 LLM 研判（严格 JSON 输出）。协议自适应：LLM_BASE_URL 指向 Anthropic 兼容
+// 端点（智谱 Coding Plan 的 /api/anthropic、Claude API）时走 /v1/messages 吃订阅额度，
+// 其余（DeepSeek/GLM API/Moonshot 等 OpenAI 兼容）走 /chat/completions 吃按量余额。
+// 换服务商/换额度来源 = 只改 LLM_BASE_URL，协议由 URL 自动匹配。
 //
 // 密钥纪律：LLM_API_KEY 只从环境变量读取（GitHub Actions Secrets 注入），
 // 不落代码、不落文件、不打印；缺 key 时返回 null，管线自动降级为纯规则模式。
-// 默认 DeepSeek（充值制限额=成本保险丝）；换 Moonshot/GLM/OpenAI 只需改
-// GitHub Variables: LLM_BASE_URL / LLM_MODEL。
 const SYSTEM_PROMPT = `你是一名专注于半导体制造、先进封装、光通信互联与 AI 算力硬件的资深行业情报分析师。
 对输入的产业信源内容做深度加工与研判。核心原则：
 1. 严谨客观，过滤公关辞令、模糊吹捧与情绪化表达；
@@ -31,6 +32,10 @@ export const available = () => Boolean(process.env.LLM_API_KEY) && !tripped;
 // 熔断状态快照（main 汇入简报「运行状态」）：tripped=false 表示本轮 LLM 层全程未熔断
 export const state = () => ({ tripped, reason: tripReason });
 
+// 协议判定：URL 里带 anthropic（域名或路径，如 open.bigmodel.cn/api/anthropic、
+// api.anthropic.com）即视为 Anthropic 兼容端点，走 /v1/messages；其余走 OpenAI 兼容。
+const isAnthropicBase = (base) => /(^|\.)anthropic\.com|\/anthropic/.test(base);
+
 // budgetMs：本条的剩余研判预算（总预算由 main 计算，< workflow 超时，防 LLM 超时重试拖垮整轮）。
 // 预算耗尽返回 null，条目降级为规则模式直通输出。
 export async function analyze(item, budgetMs = 90000) {
@@ -38,36 +43,55 @@ export async function analyze(item, budgetMs = 90000) {
   const deadline = Date.now() + budgetMs;
   const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
   const model = process.env.LLM_MODEL || 'deepseek-chat';
-  const messages = [
+  const anthropic = isAnthropicBase(base);
+  const userContent = `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, 3000)}`;
+  const openaiMessages = [
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, 3000)}` },
+    { role: 'user', content: userContent },
   ];
-  const headers = { 'Authorization': `Bearer ${process.env.LLM_API_KEY}`, 'Content-Type': 'application/json' };
+  // Anthropic 无 response_format；system 独立字段；max_tokens 必填。
+  // 双头认证（x-api-key + Bearer）兼容原生 Claude API 与智谱等代理实现。
+  const endpoint = anthropic ? `${base}/v1/messages` : `${base}/chat/completions`;
+  const headers = anthropic
+    ? { 'x-api-key': process.env.LLM_API_KEY, 'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+        'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' }
+    : { 'Authorization': `Bearer ${process.env.LLM_API_KEY}`, 'Content-Type': 'application/json' };
   let useJsonMode = true; // provider 不支持 response_format 时自动去掉重试（GLM 等兼容性垫片）
   for (let attempt = 0; attempt < 3; attempt++) {
     const left = deadline - Date.now();
     if (left < 5000) return null; // 预算耗尽，剩余条目留待下一轮
     try {
-      const payload = { model, temperature: 0.2, messages,
-        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
-      const res = await fetch(`${base}/chat/completions`, {
+      const payload = anthropic
+        ? { model, max_tokens: 2048, temperature: 0.2, system: SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: userContent }] }
+        : { model, temperature: 0.2, messages: openaiMessages,
+            ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
+      const res = await fetch(endpoint, {
         method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(90000, left)),
       });
       if (res.status === 200) {
         streak429 = 0; // 成功清零限流连击
         const j = await res.json();
-        // 容忍 ```json 围栏（json mode 关闭时模型可能加围栏）
-        const raw = String(j.choices[0].message.content).trim()
+        // Anthropic 响应体在 content[].text；OpenAI 在 choices[0].message.content
+        const text = anthropic
+          ? (j.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('')
+          : j.choices[0].message.content;
+        // 容忍 ```json 围栏（json mode 关闭/Anthropic 端点时模型可能加围栏）
+        const raw = String(text).trim()
           .replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
         return JSON.parse(raw);
       }
-      if (res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
+      if (!anthropic && res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
       // 记状态码 + 服务商错误码/消息（错误体不含密钥；截断防日志膨胀，非 JSON 体静默跳过）
+      // Anthropic 错误体 {type:'error',error:{type,message}} 无 code 字段，用 type 顶替
       let ecode = '', emsg = '';
-      try { const e = (await res.json())?.error ?? {}; ecode = String(e.code ?? ''); emsg = String(e.message ?? '').slice(0, 160); } catch { /* 非 JSON 体 */ }
+      try {
+        const e = (await res.json())?.error ?? {};
+        ecode = String(e.code ?? e.type ?? ''); emsg = String(e.message ?? '').slice(0, 160);
+      } catch { /* 非 JSON 体 */ }
       console.log(`[llm] ${item.item_id} http ${res.status}${ecode ? ` code ${ecode}` : ''}${emsg ? ` ${emsg}` : ''}`);
-      // 熔断判定：欠费(1113)/鉴权(401/402/403) 即停；其余 429 连续 6 次停
-      if ([401, 402, 403].includes(res.status) || ecode === '1113') return trip(res.status, ecode, emsg);
+      // 熔断判定：欠费(1113，智谱两家端点都可能在 message 里带码)/鉴权(401/402/403) 即停；其余 429 连续 6 次停
+      if ([401, 402, 403].includes(res.status) || ecode === '1113' || emsg.includes('1113')) return trip(res.status, ecode, emsg);
       if (res.status === 429 && ++streak429 >= 6) return trip(res.status, ecode, emsg);
     } catch (ex) {
       console.log(`[llm] ${item.item_id} error ${String(ex).slice(0, 80)}`);
