@@ -43,7 +43,9 @@ export async function analyze(item, budgetMs = 90000) {
   const deadline = Date.now() + budgetMs;
   const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
   const model = process.env.LLM_MODEL || 'deepseek-chat';
-  const anthropic = isAnthropicBase(base);
+  // 协议选择：LLM_PROTOCOL 显式指定优先（anthropic|openai），否则按 URL 自动判定——
+  // 覆盖自动判定覆盖不到的形态（如火山方舟 /api/plan 这类不含 anthropic 字样的 Anthropic 协议端点）
+  const anthropic = String(process.env.LLM_PROTOCOL || (isAnthropicBase(base) ? 'anthropic' : 'openai')).toLowerCase() === 'anthropic';
   const userContent = `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, 3000)}`;
   const openaiMessages = [
     { role: 'system', content: SYSTEM_PROMPT },

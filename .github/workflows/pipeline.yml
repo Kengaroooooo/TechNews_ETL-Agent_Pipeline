@@ -30,10 +30,12 @@ jobs:
       - name: Run pipeline
         env:
           # LLM_API_KEY 为加密 Secret（Settings → Secrets and variables → Actions 设置）；
-          # LLM_BASE_URL / LLM_MODEL 为普通 Variables（非敏感，缺省 = DeepSeek）
+          # LLM_BASE_URL / LLM_MODEL 为普通 Variables（非敏感，缺省 = DeepSeek）；
+          # LLM_PROTOCOL 可选（anthropic|openai），仅当 URL 自动判定不准时才需要设
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
+          LLM_PROTOCOL: ${{ vars.LLM_PROTOCOL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: node src/main.mjs

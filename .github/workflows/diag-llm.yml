@@ -1,8 +1,8 @@
 name: diag-llm
 
-# 一次性诊断矩阵：对智谱编程套餐的候选端点/协议/模型组合各发 1 次最小请求，
-# 打印状态码与响应体，一次运行定位「哪个端点 + 哪个协议 + 哪个模型名」可用。
-# 同时保留对 vars.LLM_BASE_URL 当前配置的探测（协议按 URL 自适应，与 src/llm.mjs 一致）。
+# 通用 LLM 端点诊断：不绑定服务商——对 vars.LLM_BASE_URL 同时探测两种协议的
+# 对话端点与模型清单，打印状态码与响应体，并给出「该端点实际是什么协议、
+# 当前协议判定是否正确」的结论。换任何服务商/额度来源后跑一次即可定位配置问题。
 on:
   workflow_dispatch: {}
 
@@ -16,47 +16,63 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
+          LLM_PROTOCOL: ${{ vars.LLM_PROTOCOL }}
         run: |
           node --input-type=module -e '
           const key = process.env.LLM_API_KEY;
-          const model = process.env.LLM_MODEL || "glm-5.3";
+          const base = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
+          const model = process.env.LLM_MODEL || "deepseek-chat";
+          const auto = /(^|\.)anthropic\.com|\/anthropic/.test(base) ? "anthropic" : "openai";
+          const effective = (process.env.LLM_PROTOCOL || auto).toLowerCase() === "anthropic" ? "anthropic" : "openai";
+          console.log("base:", base);
+          console.log("model:", model);
+          console.log("协议判定:", process.env.LLM_PROTOCOL ? "override=" + process.env.LLM_PROTOCOL : "auto=" + auto, "| 管线实际生效:", effective);
+          console.log("");
+
           const anthropicHeaders = {
             "Authorization": "Bearer " + key, "x-api-key": key,
             "anthropic-version": "2023-06-01", "Content-Type": "application/json",
           };
           const openaiHeaders = { "Authorization": "Bearer " + key, "Content-Type": "application/json" };
-          const anthropicBody = (m, c = "只回复两个字：正常") =>
-            JSON.stringify({ model: m, max_tokens: 32, messages: [{ role: "user", content: c }] });
-          const openaiBody = (m, c = "只回复两个字：正常") =>
-            JSON.stringify({ model: m, max_tokens: 32, messages: [{ role: "user", content: c }] });
+          const messages = [{ role: "user", content: "只回复两个字：正常" }];
 
-          // [标签, 方法, URL, headers, body]
+          // [标签, 方法, URL, headers, body, 结果归类]
           const targets = [
-            ["A1 anthropic 模型清单", "GET", "https://open.bigmodel.cn/api/anthropic/v1/models", anthropicHeaders, null],
-            ["A2 anthropic " + model, "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages", anthropicHeaders, anthropicBody(model)],
-            ["A3 anthropic " + model + " (beta 参数)", "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages?beta=true", anthropicHeaders, anthropicBody(model)],
-            ["A4 anthropic 仿 Claude Code UA", "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages", { ...anthropicHeaders, "User-Agent": "claude-cli/2.0.0 (external, cli)", "x-app": "cli" }, anthropicBody(model)],
-            ["B1 openai-coding " + model, "POST", "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", openaiHeaders, openaiBody(model)],
-            ["B2 openai-coding glm-5.3-flash", "POST", "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", openaiHeaders, openaiBody("glm-5.3-flash")],
+            ["anthropic 协议 POST /v1/messages", "POST", base + "/v1/messages", anthropicHeaders,
+              { model, max_tokens: 64, messages }, "anthropic"],
+            ["openai 协议 POST /chat/completions", "POST", base + "/chat/completions", openaiHeaders,
+              { model, max_tokens: 64, messages }, "openai"],
+            ["anthropic 模型清单 GET /v1/models", "GET", base + "/v1/models", anthropicHeaders, null, ""],
+            ["openai 模型清单 GET /models", "GET", base + "/models", openaiHeaders, null, ""],
           ];
-          if (process.env.LLM_BASE_URL) {
-            const base = process.env.LLM_BASE_URL.replace(/\/+$/, "");
-            const anthropic = /(^|\.)anthropic\.com|\/anthropic/.test(base);
-            targets.push(["C1 当前配置 " + base + " (" + (anthropic ? "anthropic" : "openai") + ")", "POST",
-              base + (anthropic ? "/v1/messages" : "/chat/completions"),
-              anthropic ? anthropicHeaders : openaiHeaders,
-              anthropic ? anthropicBody(model) : openaiBody(model)]);
+
+          const results = {};
+          for (const [tag, method, url, headers, body, kind] of targets) {
+            try {
+              const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(30000) });
+              const t = await res.text();
+              const looksRight = res.status === 200 && (
+                (kind === "anthropic" && JSON.stringify(t).includes("\"content\"")) ||
+                (kind === "openai" && JSON.stringify(t).includes("\"choices\"")) ||
+                kind === "");
+              if (kind) results[kind] = { status: res.status, ok: looksRight };
+              console.log("==", tag, "→", res.status, looksRight ? "" : "(响应形状异常)");
+              console.log("  ", t.slice(0, 500).replace(/\n/g, " "));
+            } catch (e) {
+              if (kind) results[kind] = { status: 0, ok: false };
+              console.log("==", tag, "→ network error:", String(e).slice(0, 150));
+            }
           }
 
-          for (const [tag, method, url, headers, body] of targets) {
-            const shortUrl = url.replace(/^https:\/\/open\.bigmodel\.cn/, "");
-            try {
-              const res = await fetch(url, { method, headers, body, signal: AbortSignal.timeout(30000) });
-              const t = await res.text();
-              console.log("==", tag, "→", res.status, shortUrl);
-              console.log("  ", t.slice(0, 400).replace(/\n/g, " "));
-            } catch (e) {
-              console.log("==", tag, "→ network error:", String(e).slice(0, 150), shortUrl);
-            }
+          console.log("");
+          const a = results.anthropic?.ok, o = results.openai?.ok;
+          if (a && !o) {
+            console.log("结论：Anthropic 协议端点。当前生效:", effective, effective === "anthropic" ? "✓ 无需改动" : "✗ 需修正 → GitHub Variables 加 LLM_PROTOCOL=anthropic（或检查 URL）");
+          } else if (o && !a) {
+            console.log("结论：OpenAI 协议端点。当前生效:", effective, effective === "openai" ? "✓ 无需改动" : "✗ 需修正 → GitHub Variables 加 LLM_PROTOCOL=openai（或检查 URL）");
+          } else if (a && o) {
+            console.log("结论：两种协议都通（少见，网关兼容双协议）。当前生效:", effective, "✓ 可用");
+          } else {
+            console.log("结论：两种协议都不通。检查上面模型清单的输出：清单能列出 → 多半是模型名不对；清单也失败 → key 无效/欠费/IP 被拦，看各探测的状态码与响应体。");
           }
           '
