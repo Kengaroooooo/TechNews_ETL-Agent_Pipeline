@@ -114,22 +114,40 @@ async function main() {
 
   // 5. 输出
   series.append(readings);
+  const issues = await createP0Issues(graded.filter(g => g.priority === 'P0'));
   const stats = {
-    new: fresh.length, passed: passed.length, noise,
+    fetched: items.length, new: fresh.length, passed: passed.length, noise,
     p0: graded.filter(g => g.priority === 'P0').length,
     p1: graded.filter(g => g.priority === 'P1').length,
     p2: graded.filter(g => g.priority === 'P2').length,
     skipped: graded.filter(g => g.llm_skipped).length,
+    p0_issues: issues,
   };
-  render.writeBrief(runTs, readings, graded, stats, llmOn);
+  // 各层执行状态汇总（简报「运行状态」块 + 末行日志用）
+  const failMap = new Map();
+  for (const h of health) if (h.status >= 400) {
+    const k = `${h.name} ${h.status}`;
+    failMap.set(k, (failMap.get(k) || 0) + 1);
+  }
+  const diag = {
+    srcOk: health.length - [...failMap.values()].reduce((a, b) => a + b, 0),
+    srcTotal: health.length,
+    srcFailed: [...failMap].map(([k, n]) => (n > 1 ? `${k}×${n}` : k)).join('、'),
+    localFeeds: local.files.length
+      ? `${local.files.length} 个（${local.files.map(f => f.replace(/\.xml$/, '')).join('、')}）` : '',
+    vastOk: readings.filter(r => !r.error).length,
+    vastTotal: readings.length,
+    llm: llm.state(),
+  };
+  render.writeBrief(runTs, readings, graded, stats, llmOn, diag);
   render.writeQueue(runTs, graded);
-  const issues = await createP0Issues(graded.filter(g => g.priority === 'P0'));
 
   // 6. 全部产出落盘后提交去重索引（在此之前失败 = 下轮重试，而非永久丢条目）
   const now = Math.floor(Date.now() / 1000);
   for (const i of fresh) seen[i.item_id] = now;
   const kept = dedup.save(seen);
-  console.log(`[pipeline] done: ${JSON.stringify(stats)} llm=${llmOn} seen=${kept} p0_issues=${issues}`);
+  const llmState = !llmOn ? 'off' : diag.llm.tripped ? 'tripped' : 'on';
+  console.log(`[pipeline] done: ${JSON.stringify(stats)} llm=${llmState} src=${diag.srcOk}/${diag.srcTotal} vast=${diag.vastOk}/${diag.vastTotal} seen=${kept}`);
 }
 
 main().catch(ex => { console.error('[pipeline] fatal:', ex); process.exit(1); });

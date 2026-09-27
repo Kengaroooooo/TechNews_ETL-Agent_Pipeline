@@ -17,14 +17,19 @@ const SYSTEM_PROMPT = `你是一名专注于半导体制造、先进封装、光
 // 直接降级规则模式，不再空耗请求与预算；下一轮进程重启自然复位。
 let tripped = false;
 let streak429 = 0;
+let tripReason = ''; // 人类可读的熔断原因（http 状态码 + 服务商错误码/消息），简报「运行状态」用
 
 function trip(status, ecode, emsg) {
   tripped = true;
+  tripReason = `http ${status}${ecode ? ` code ${ecode}` : ''}${emsg ? `：${emsg}` : ''}`.slice(0, 100);
   console.log(`[llm] breaker: http ${status}${ecode ? ` code ${ecode}` : ''} ${emsg}——本轮剩余条目跳过 LLM 研判，降级规则模式`);
   return null;
 }
 
 export const available = () => Boolean(process.env.LLM_API_KEY) && !tripped;
+
+// 熔断状态快照（main 汇入简报「运行状态」）：tripped=false 表示本轮 LLM 层全程未熔断
+export const state = () => ({ tripped, reason: tripReason });
 
 // budgetMs：本条的剩余研判预算（总预算由 main 计算，< workflow 超时，防 LLM 超时重试拖垮整轮）。
 // 预算耗尽返回 null，条目降级为规则模式直通输出。

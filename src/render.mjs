@@ -6,9 +6,21 @@ import { DATA_DIR } from './config.mjs';
 const BRIEF_DIR = path.join(DATA_DIR, 'briefs');
 const QUEUE_DIR = path.join(DATA_DIR, 'queue');
 
-export function writeBrief(runTs, readings, graded, stats, llmOn) {
+export function writeBrief(runTs, readings, graded, stats, llmOn, diag) {
   mkdirSync(BRIEF_DIR, { recursive: true });
   const lines = [`\n## ${runTs.slice(11, 16)} UTC 运行\n`];
+  // 运行状态：各层执行状态一览，放在最前——不读正文即可判断本轮质量
+  const llmLine = !llmOn ? '关（缺 key，纯规则模式）'
+    : diag.llm.tripped ? `开 → 熔断（${diag.llm.reason}），剩余条目降级规则模式`
+    : '开';
+  lines.push('### 运行状态\n');
+  lines.push(`- 采集：端点 ${diag.srcOk}/${diag.srcTotal} 在线；本地 feed ${diag.localFeeds || '无'}；Vast.ai ${diag.vastOk}/${diag.vastTotal} 型号`);
+  lines.push(`- 异常源：${diag.srcFailed || '无'}`);
+  lines.push(`- 去重：拉取 ${stats.fetched} 条 → 新增 ${stats.new} 条`);
+  lines.push(`- 初筛：过筛 ${stats.passed} 条 / 拒 ${stats.noise} 条`);
+  lines.push(`- LLM 研判：${llmLine}${llmOn ? `（研判成功 ${stats.passed - stats.skipped} 条，降级直通 ${stats.skipped} 条）` : ''}`);
+  lines.push(`- 产出：P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}；P0 告警 Issue ${stats.p0_issues}`);
+  lines.push('');
   const ok = readings.filter(r => r.p50 !== undefined);
   if (ok.length) {
     lines.push('### GPU 现货挂牌（Vast.ai，$/GPU·hr）\n');
@@ -27,8 +39,6 @@ export function writeBrief(runTs, readings, graded, stats, llmOn) {
       lines.push('');
     }
   }
-  const skippedNote = llmOn ? `LLM 未研判 ${stats.skipped} 条（超上限/超时预算/研判失败，已降级直通）；` : '';
-  lines.push(`统计：本轮新增 ${stats.new} 条，过筛 ${stats.passed} 条（P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}），未过筛 ${stats.noise} 条；${skippedNote}LLM 研判层：${llmOn ? '开' : '关（缺 key，纯规则模式）'}\n`);
   const p = path.join(BRIEF_DIR, `${runTs.slice(0, 10)}.md`);
   appendFileSync(p, lines.join('\n'));
   return p;
