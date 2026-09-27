@@ -1,8 +1,8 @@
 name: diag-llm
 
-# 一次性诊断：对 LLM 端点发 1 次与主管线同构的请求（协议按 BASE_URL 自适应，
-# 与 src/llm.mjs 的 isAnthropicBase 判定保持一致），打印状态码与响应体，
-# 用于定位 429/404 的具体原因（限流/欠费/端点/模型名）。排查后可删除本文件。
+# 一次性诊断矩阵：对智谱编程套餐的候选端点/协议/模型组合各发 1 次最小请求，
+# 打印状态码与响应体，一次运行定位「哪个端点 + 哪个协议 + 哪个模型名」可用。
+# 同时保留对 vars.LLM_BASE_URL 当前配置的探测（协议按 URL 自适应，与 src/llm.mjs 一致）。
 on:
   workflow_dispatch: {}
 
@@ -11,39 +11,52 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: One-shot LLM probe
+      - name: LLM probe matrix
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}
         run: |
-          node -e '
-          const base = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
-          const model = process.env.LLM_MODEL || "deepseek-chat";
-          const anthropic = /(^|\.)anthropic\.com|\/anthropic/.test(base);
-          console.log("probe:", model, "@", base, "| protocol:", anthropic ? "anthropic" : "openai");
-          fetch(base + (anthropic ? "/v1/messages" : "/chat/completions"), {
-            method: "POST",
-            headers: anthropic
-              ? { "x-api-key": process.env.LLM_API_KEY, "Authorization": "Bearer " + process.env.LLM_API_KEY,
-                  "anthropic-version": "2023-06-01", "Content-Type": "application/json" }
-              : { Authorization: "Bearer " + process.env.LLM_API_KEY, "Content-Type": "application/json" },
-            body: JSON.stringify(anthropic
-              ? { model, max_tokens: 16, messages: [{ role: "user", content: "ping" }] }
-              : { model, temperature: 0.2, max_tokens: 16,
-                  messages: [{ role: "user", content: "ping" }],
-                  response_format: { type: "json_object" } }),
-            signal: AbortSignal.timeout(30000),
-          })
-          .then(async r => {
-            const t = await r.text();
-            console.log("HTTP", r.status);
-            console.log(t.slice(0, 600));
+          node --input-type=module -e '
+          const key = process.env.LLM_API_KEY;
+          const model = process.env.LLM_MODEL || "glm-5.3";
+          const anthropicHeaders = {
+            "Authorization": "Bearer " + key, "x-api-key": key,
+            "anthropic-version": "2023-06-01", "Content-Type": "application/json",
+          };
+          const openaiHeaders = { "Authorization": "Bearer " + key, "Content-Type": "application/json" };
+          const anthropicBody = (m, c = "只回复两个字：正常") =>
+            JSON.stringify({ model: m, max_tokens: 32, messages: [{ role: "user", content: c }] });
+          const openaiBody = (m, c = "只回复两个字：正常") =>
+            JSON.stringify({ model: m, max_tokens: 32, messages: [{ role: "user", content: c }] });
+
+          // [标签, 方法, URL, headers, body]
+          const targets = [
+            ["A1 anthropic 模型清单", "GET", "https://open.bigmodel.cn/api/anthropic/v1/models", anthropicHeaders, null],
+            ["A2 anthropic " + model, "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages", anthropicHeaders, anthropicBody(model)],
+            ["A3 anthropic " + model + " (beta 参数)", "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages?beta=true", anthropicHeaders, anthropicBody(model)],
+            ["A4 anthropic 仿 Claude Code UA", "POST", "https://open.bigmodel.cn/api/anthropic/v1/messages", { ...anthropicHeaders, "User-Agent": "claude-cli/2.0.0 (external, cli)", "x-app": "cli" }, anthropicBody(model)],
+            ["B1 openai-coding " + model, "POST", "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", openaiHeaders, openaiBody(model)],
+            ["B2 openai-coding glm-5.3-flash", "POST", "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", openaiHeaders, openaiBody("glm-5.3-flash")],
+          ];
+          if (process.env.LLM_BASE_URL) {
+            const base = process.env.LLM_BASE_URL.replace(/\/+$/, "");
+            const anthropic = /(^|\.)anthropic\.com|\/anthropic/.test(base);
+            targets.push(["C1 当前配置 " + base + " (" + (anthropic ? "anthropic" : "openai") + ")", "POST",
+              base + (anthropic ? "/v1/messages" : "/chat/completions"),
+              anthropic ? anthropicHeaders : openaiHeaders,
+              anthropic ? anthropicBody(model) : openaiBody(model)]);
+          }
+
+          for (const [tag, method, url, headers, body] of targets) {
+            const shortUrl = url.replace(/^https:\/\/open\.bigmodel\.cn/, "");
             try {
-              const j = JSON.parse(t);
-              if (r.status === 200 && !j.content && !j.choices)
-                console.log("=> 伪 200：响应体是错误包装（网关行为），多为模型名或端点不匹配，不算成功");
-            } catch { /* 非 JSON 体 */ }
-          })
-          .catch(e => console.log("network error:", String(e).slice(0, 200)));
+              const res = await fetch(url, { method, headers, body, signal: AbortSignal.timeout(30000) });
+              const t = await res.text();
+              console.log("==", tag, "→", res.status, shortUrl);
+              console.log("  ", t.slice(0, 400).replace(/\n/g, " "));
+            } catch (e) {
+              console.log("==", tag, "→ network error:", String(e).slice(0, 150), shortUrl);
+            }
+          }
           '
