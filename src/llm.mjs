@@ -50,6 +50,7 @@ export async function analyze(item, budgetMs = 90000) {
     { role: 'user', content: userContent },
   ];
   // Anthropic 无 response_format；system 独立字段；max_tokens 必填。
+  // glm-5.3 等思考型模型先吐 thinking 块再吐正文，max_tokens 给足（4096）防正文被思考耗尽。
   // 双头认证（x-api-key + Bearer）兼容原生 Claude API 与智谱等代理实现。
   const endpoint = anthropic ? `${base}/v1/messages` : `${base}/chat/completions`;
   const headers = anthropic
@@ -62,7 +63,7 @@ export async function analyze(item, budgetMs = 90000) {
     if (left < 5000) return null; // 预算耗尽，剩余条目留待下一轮
     try {
       const payload = anthropic
-        ? { model, max_tokens: 2048, temperature: 0.2, system: SYSTEM_PROMPT,
+        ? { model, max_tokens: 4096, temperature: 0.2, system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: userContent }] }
         : { model, temperature: 0.2, messages: openaiMessages,
             ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
