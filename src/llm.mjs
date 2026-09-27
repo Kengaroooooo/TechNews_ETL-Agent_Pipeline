@@ -36,9 +36,7 @@ export const state = () => ({ tripped, reason: tripReason });
 export async function analyze(item, budgetMs = 90000) {
   if (!available()) return null;
   const deadline = Date.now() + budgetMs;
-  // 兼容把完整端点填进 LLM_BASE_URL 的配置：剥掉尾斜杠与多余的 /chat/completions 再拼路径
-  const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com')
-    .replace(/\/+$/, '').replace(/\/chat\/completions$/, '');
+  const base = (process.env.LLM_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
   const model = process.env.LLM_MODEL || 'deepseek-chat';
   const messages = [
     { role: 'system', content: SYSTEM_PROMPT },
