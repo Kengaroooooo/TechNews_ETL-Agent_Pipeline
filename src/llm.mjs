@@ -75,7 +75,15 @@ export async function analyze(item, budgetMs = 90000) {
         // Anthropic 响应体在 content[].text；OpenAI 在 choices[0].message.content
         const text = anthropic
           ? (j.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('')
-          : j.choices[0].message.content;
+          : j.choices?.[0]?.message?.content ?? '';
+        if (!text) {
+          // 网关把错误包在 200 里（智谱：{"code":500,"msg":"404 NOT_FOUND"}，多为模型名/端点不匹配）。
+          // 带错误字段的按配置类错误熔断整轮（重试无意义）；纯粹空响应则走重试。
+          const ecode = String(j.code ?? j.error?.code ?? '');
+          const emsg = String(j.msg ?? j.error?.message ?? '').slice(0, 160);
+          if (ecode || emsg) return trip(res.status, ecode, emsg);
+          throw new Error('empty content');
+        }
         // 容忍 ```json 围栏（json mode 关闭/Anthropic 端点时模型可能加围栏）
         const raw = String(text).trim()
           .replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');

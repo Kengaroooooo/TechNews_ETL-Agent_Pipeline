@@ -35,6 +35,15 @@ jobs:
                   response_format: { type: "json_object" } }),
             signal: AbortSignal.timeout(30000),
           })
-          .then(async r => { console.log("HTTP", r.status); console.log((await r.text()).slice(0, 600)); })
+          .then(async r => {
+            const t = await r.text();
+            console.log("HTTP", r.status);
+            console.log(t.slice(0, 600));
+            try {
+              const j = JSON.parse(t);
+              if (r.status === 200 && !j.content && !j.choices)
+                console.log("=> 伪 200：响应体是错误包装（网关行为），多为模型名或端点不匹配，不算成功");
+            } catch { /* 非 JSON 体 */ }
+          })
           .catch(e => console.log("network error:", String(e).slice(0, 200)));
           '
