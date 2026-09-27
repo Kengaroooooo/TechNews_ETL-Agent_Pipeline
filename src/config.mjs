@@ -30,17 +30,17 @@ export const PROBE_ONLY = [
 
 export const VASTAI_ENDPOINT = 'https://console.vast.ai/api/v0/bundles/';
 export const VASTAI_MODELS = ['H100 SXM', 'H100 NVL', 'H200', 'H200 NVL', 'B200', 'A100 SXM4', 'RTX 4090', 'RTX 5090'];
+export const VASTAI_PAGE_CAP = 64; // API 单查询上限（实测；触顶时其 truncated 标志并不翻，须按 n>=cap 自行判定截断）
 
 // 一级初筛关键词库（规则初筛降 LLM 成本；命中任一即过筛）。
 // 不收录被其它词完整覆盖的词条：'b200' ⊃ 'gb200'，'photonic' ⊃ 'silicon photonics'。
+// '/…/' 形式按正则匹配，用于裸子串易误伤的短词（如 'eml' 会命中含该字样的任意单词）。
 export const KEYWORDS = [
   'hbm', 'cowos', 'tsmc', 'asml', 'cpo', 'lpo', 'transceiver', '800g', '1.6t', 'photonic',
-  'wafer', 'nand', 'dram', 'gpu', 'optical', 'eml', 'serdes', 'backplane',
-  'advanced packaging', 'wfe', 'h100', 'b200', 'h200', 'mi300', 'hyperscaler', 'capex',
-  'foundry', 'infiniband', 'coherent', 'optics', 'data center', 'ai accelerator', 'blackwell',
+  'wafer', 'nand', 'dram', 'gpu', 'optical', '/\\beml\\b/', 'serdes', 'backplane',
+  'advanced packaging', 'wfe', 'h100', 'b200', 'h200', 'mi300', 'mi325', 'mi350', 'hyperscaler', 'capex',
+  'foundry', 'infiniband', 'coherent', 'optics', 'data center', 'datacenter', 'ai accelerator', 'blackwell',
 ];
-// 高信噪比源免关键词初筛
-export const AUTO_PASS_SOURCES = new Set(['SemiAnalysis']);
 
 export const MAX_LLM_ITEMS = Number(process.env.MAX_LLM_ITEMS || 20); // 单轮 LLM 研判条数上限（成本闸）
 export const LLM_BUDGET_MS = 15 * 60 * 1000; // LLM 研判总时间闸（workflow 超时 25min 的 60%，留出采集/输出余量）

@@ -124,8 +124,11 @@ async function main() {
     p0_issues: issues,
   };
   // 各层执行状态汇总（简报「运行状态」块 + 末行日志用）
+  // 端点在线 = 拿到 2xx/3xx 数字状态码；网络级失败（status='network-error' 字符串）与
+  // >=400 一律算离线——字符串与数字比较恒为 false，不能只写 status >= 400
+  const isDown = h => !(typeof h.status === 'number' && h.status >= 200 && h.status < 400);
   const failMap = new Map();
-  for (const h of health) if (h.status >= 400) {
+  for (const h of health) if (isDown(h)) {
     const k = `${h.name} ${h.status}`;
     failMap.set(k, (failMap.get(k) || 0) + 1);
   }

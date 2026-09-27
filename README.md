@@ -61,7 +61,7 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 | 本地 `node src/main.mjs` 的调试产物：`data/briefs/`、`data/queue/`、`data/series/`、`data/seen.json`、`data/health.json` | 双重伤害：① 本地无 key，产出的是未研判降级版本，覆盖 Actions 的完整版本；② **`seen.json` 一旦上推，那批条目被永久标记已处理——降级直通是设计行为不重试，它们永远得不到 LLM 研判** |
 | `tools/.browser-profile/` | stealth 浏览器身份（cookie/指纹/session）。推到公开仓库 = 交出反爬身份；多机克隆共用同身份会互相顶掉 session。已 .gitignore，保持 |
 | `.env`、任何 key 材料 | 密钥纪律见「API Key 安全」。已 .gitignore |
-| 一次性探针 / 实验脚本（如 `tools/probe-yole.mjs`） | 默认本地草稿；被生产链路引用（并入 local-feeds.mjs）或具文档价值时才转正提交 |
+| 一次性探针 / 实验脚本 | 默认本地草稿，用完即删；被生产链路引用（并入 local-feeds.mjs）或具文档价值时才转正提交（如 `tools/check-gh-runs.mjs` 已转正：只读 GitHub API 查运行状态与数据产物） |
 
 ### 执行细则（防手滑，均为事故场景提炼）
 

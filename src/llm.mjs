@@ -36,6 +36,44 @@ export const state = () => ({ tripped, reason: tripReason });
 // api.anthropic.com）即视为 Anthropic 兼容端点，走 /v1/messages；其余走 OpenAI 兼容。
 const isAnthropicBase = (base) => /(^|\.)anthropic\.com|\/anthropic/.test(base);
 
+// ---------- 内容窗口自适应 ----------
+// 输入内容的截取长度跟随模型实际上下文上限，而非拍脑袋常数。解析优先级：
+//   1) LLM_MAX_CONTENT_CHARS 显式指定（字符数）
+//   2) 模型端点元数据折算（/models 里带 context_length 等字段的服务商；按保守 2 字符/token
+//      折算，预留 system 提示 + 输出 + 裕量，封顶 16000 字符控制单请求体量）
+//   3) 都拿不到 → 保守默认 3000 字符
+// 运行中遇到"上下文超限"类 400 再自动减半重试（见 analyze），学习结果本轮内持续生效。
+let contentChars; // undefined = 未初始化；作用域 = 一轮管线（进程级，重启复位）
+
+// 返回内容窗口访问器：无参读、传参写（上下文超限减半时用）
+async function resolveContentChars(base, anthropic, model, headers) {
+  if (contentChars === undefined) {
+    const env = Number(process.env.LLM_MAX_CONTENT_CHARS || 0);
+    if (env > 0) {
+      contentChars = env;
+    } else {
+      contentChars = 3000;
+      try {
+        const res = await fetch(`${base}${anthropic ? '/v1/models' : '/models'}`,
+          { headers, signal: AbortSignal.timeout(10000) });
+        if (res.status === 200) {
+          const j = await res.json();
+          const m = (j.data ?? j.models ?? []).find(x => x?.id === model);
+          // 各家字段名不统一，取第一个能读到的上下文长度（token 数）
+          const ctx = m && ['context_length', 'max_context_length', 'context_window', 'max_input_tokens', 'max_model_len', 'max_tokens']
+            .map(k => Number(m[k])).find(n => Number.isFinite(n) && n > 0);
+          if (ctx) {
+            // 预留：system 提示 ~1k + 输出 max_tokens 4k + 裕量 1k ≈ 6k tokens；保守按 2 字符/token 折算
+            contentChars = Math.min(16000, Math.max(1000, Math.floor((ctx - 6144) * 2)));
+            console.log(`[llm] ${model} 上下文 ${ctx} tokens → 内容窗口 ${contentChars} 字符`);
+          }
+        }
+      } catch { /* 元数据拿不到就用默认，无需告警 */ }
+    }
+  }
+  return v => { if (v !== undefined) contentChars = v; return contentChars; };
+}
+
 // budgetMs：本条的剩余研判预算（总预算由 main 计算，< workflow 超时，防 LLM 超时重试拖垮整轮）。
 // 预算耗尽返回 null，条目降级为规则模式直通输出。
 export async function analyze(item, budgetMs = 90000) {
@@ -46,11 +84,6 @@ export async function analyze(item, budgetMs = 90000) {
   // 协议选择：LLM_PROTOCOL 显式指定优先（anthropic|openai），否则按 URL 自动判定——
   // 覆盖自动判定覆盖不到的形态（如火山方舟 /api/plan 这类不含 anthropic 字样的 Anthropic 协议端点）
   const anthropic = String(process.env.LLM_PROTOCOL || (isAnthropicBase(base) ? 'anthropic' : 'openai')).toLowerCase() === 'anthropic';
-  const userContent = `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, 3000)}`;
-  const openaiMessages = [
-    { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: userContent },
-  ];
   // Anthropic 无 response_format；system 独立字段；max_tokens 必填。
   // glm-5.3 等思考型模型先吐 thinking 块再吐正文，max_tokens 给足（4096）防正文被思考耗尽。
   // 双头认证（x-api-key + Bearer）兼容原生 Claude API 与智谱等代理实现。
@@ -59,15 +92,19 @@ export async function analyze(item, budgetMs = 90000) {
     ? { 'x-api-key': process.env.LLM_API_KEY, 'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
         'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' }
     : { 'Authorization': `Bearer ${process.env.LLM_API_KEY}`, 'Content-Type': 'application/json' };
+  const chars = await resolveContentChars(base, anthropic, model, headers);
   let useJsonMode = true; // provider 不支持 response_format 时自动去掉重试（GLM 等兼容性垫片）
   for (let attempt = 0; attempt < 3; attempt++) {
     const left = deadline - Date.now();
     if (left < 5000) return null; // 预算耗尽，剩余条目留待下一轮
     try {
+      // payload 每次循环重建：内容窗口可能在上一轮 400 后被减半
+      const userContent = `来源: ${item.source}\n标题: ${item.title}\n内容: ${item.content.slice(0, chars())}`;
       const payload = anthropic
         ? { model, max_tokens: 4096, temperature: 0.2, system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: userContent }] }
-        : { model, temperature: 0.2, messages: openaiMessages,
+        : { model, temperature: 0.2,
+            messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userContent }],
             ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}) };
       const res = await fetch(endpoint, {
         method: 'POST', headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(Math.min(90000, left)),
@@ -92,7 +129,6 @@ export async function analyze(item, budgetMs = 90000) {
           .replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
         return JSON.parse(raw);
       }
-      if (!anthropic && res.status === 400 && useJsonMode) { useJsonMode = false; continue; }
       // 记状态码 + 服务商错误码/消息（错误体不含密钥；截断防日志膨胀，非 JSON 体静默跳过）
       // Anthropic 错误体 {type:'error',error:{type,message}} 无 code 字段，用 type 顶替
       let ecode = '', emsg = '';
@@ -101,13 +137,22 @@ export async function analyze(item, budgetMs = 90000) {
         ecode = String(e.code ?? e.type ?? ''); emsg = String(e.message ?? '').slice(0, 160);
       } catch { /* 非 JSON 体 */ }
       console.log(`[llm] ${item.item_id} http ${res.status}${ecode ? ` code ${ecode}` : ''}${emsg ? ` ${emsg}` : ''}`);
+      if (res.status === 400) {
+        // 上下文超限：内容窗口减半后立即重试，学到的新窗口对本轮后续条目持续生效
+        if (chars() > 1000 && /context|上下文|too long|超长|过长|token limit/i.test(emsg)) {
+          chars(Math.max(1000, Math.floor(chars() / 2)));
+          console.log(`[llm] 上下文超限，内容窗口减半 → ${chars()} 字符`);
+          continue;
+        }
+        if (!anthropic && useJsonMode) { useJsonMode = false; continue; } // response_format 不被支持，去掉重试
+      }
       // 熔断判定：欠费(1113，智谱两家端点都可能在 message 里带码)/鉴权(401/402/403) 即停；其余 429 连续 6 次停
       if ([401, 402, 403].includes(res.status) || ecode === '1113' || emsg.includes('1113')) return trip(res.status, ecode, emsg);
       if (res.status === 429 && ++streak429 >= 6) return trip(res.status, ecode, emsg);
     } catch (ex) {
       console.log(`[llm] ${item.item_id} error ${String(ex).slice(0, 80)}`);
     }
-    await new Promise(r => setTimeout(r, 3000));
+    if (attempt < 2) await new Promise(r => setTimeout(r, 3000)); // 最后一次失败不再空等
   }
   return null;
 }

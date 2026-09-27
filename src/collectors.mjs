@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
 import {
-  USER_AGENT, RSS_SOURCES, PROBE_ONLY, VASTAI_ENDPOINT, VASTAI_MODELS,
+  USER_AGENT, RSS_SOURCES, PROBE_ONLY, VASTAI_ENDPOINT, VASTAI_MODELS, VASTAI_PAGE_CAP,
   RSS_PER_SOURCE, LOCAL_FEEDS_DIR, utcnow,
 } from './config.mjs';
 
@@ -54,13 +54,17 @@ export function asText(v) {
     .join(' ');
 }
 
-// Atom 的 <link href> 是属性节点，RSS 2.0 是文本节点；多条时优先取非 self 链接。
+// Atom 的 <link href> 是属性节点，RSS 2.0 是文本节点（CDATA 时会被解析成带 #text 的对象）；
+// 多条时优先取非 self 链接。统一在此处理，调用方原样传入即可。
 function asLink(v) {
+  if (v == null) return '';
   if (typeof v === 'string') return v;
   const arr = Array.isArray(v) ? v : [v];
   const withHref = arr.filter(l => l?.['@_href']);
   const pick = withHref.find(l => !l['@_rel'] || l['@_rel'] === 'alternate') ?? withHref[0];
-  return pick?.['@_href'] ?? '';
+  if (pick) return pick['@_href'];
+  const text = arr.map(l => l?.['#text'] ?? l?._).find(x => typeof x === 'string');
+  return text ?? '';
 }
 
 export function makeItem({ source, title, link, content, published }) {
@@ -103,7 +107,7 @@ export async function fetchRss(src) {
           .map(e => makeItem({
             source: src.name,
             title: e.title ?? '',
-            link: e.link?.href ?? e.link ?? '',
+            link: e.link ?? '',
             content: e['content:encoded'] ?? e.content ?? e.summary ?? e.description ?? '',
             published: e.pubDate ?? e.published ?? e.updated ?? '',
           }))
@@ -137,7 +141,9 @@ export async function fetchVastai(models = VASTAI_MODELS) {
         const offers = j.offers ?? [];
         const prices = offers.map(o => o.dph_total).filter(v => typeof v === 'number').sort((a, b) => a - b);
         rec.n = prices.length;
-        rec.truncated = j.truncated;
+        // API 的 truncated 标志在触顶时并不翻（RTX 5090 长期 n=64=上限却报 false），
+        // 触顶即按截断处理——高库存型号的分位数在截断样本上算，参考价值降级
+        rec.truncated = Boolean(j.truncated) || prices.length >= VASTAI_PAGE_CAP;
         if (prices.length) {
           const pct = f => prices[Math.min(prices.length - 1, Math.max(0, Math.ceil(prices.length * f) - 1))];
           const r3 = v => Math.round(v * 1000) / 1000;
