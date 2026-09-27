@@ -52,7 +52,7 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 | `package.json` **必须连带 `package-lock.json`** | Actions 用 `npm ci` 严格校验锁文件一致性，只推其一 = workflow 直接红 |
 | `data/feeds/*.xml` | 本机核心职责。不推 = Actions 持续消费旧 feed（对应源停更）；推送后下一轮自动补齐，去重层兜住不重复 |
 
-注意：cron 触发时间、`LLM_API_KEY`（Secret）、`LLM_BASE_URL` / `LLM_MODEL`（Variables）**只存在于 GitHub 仓库设置，本地仓库里没有对应物**——改这些去 Settings → Secrets and variables → Actions，与 push 无关。
+注意：cron 触发时间与全部 LLM 配置（Secrets/Variables）**只存在于 GitHub 仓库设置，本地仓库里没有对应物**——完整清单见「GitHub 配置项」一节，与 push 无关。
 
 ### 绝不推（推了 = 污染真相源 / 永久损伤数据）
 
@@ -107,12 +107,34 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 
 > 关于"换出口能否解决反爬"：Actions 换到 Azure 美国段解决**可达性与 IP 层封锁**，但 Cloudflare/DataDome 的 **JS 挑战跟的是客户端不是 IP**，数据中心 IP 风控评分反而更低——所以探测源的真实状态以 health.json 实测为准，不预设。
 
-## API Key 安全（Public 仓库 + Secrets）
+## GitHub 配置项（Secrets 与 Variables）
 
-1. key 以 **GitHub Actions Secret** 存储：仓库 Settings → Secrets and variables → Actions → New repository secret，名 `LLM_API_KEY`。Secrets 加密存储、只有仓库管理员可见，与仓库 Public/Private 无关；日志自动打码。
-2. 三层配合防护：触发器只有 `schedule` + `workflow_dispatch`（**fork 的 PR 默认拿不到 secrets**）；代码不打印/落盘 key；key 缺失自动降级纯规则模式。
-3. 模型配置用普通 Variables（非敏感）：`LLM_BASE_URL`、`LLM_MODEL`，缺省 DeepSeek（`https://api.deepseek.com` / `deepseek-chat`）。充值制限额=成本保险丝。
-4. 纪律：不要把 key 写进任何文件；泄露随时在 Settings 轮换。
+统一入口：仓库 **Settings → Secrets and variables → Actions**。上半区 Secrets（加密，管理员可见，日志自动打码）存敏感材料；下半区 Variables（明文）存非敏感参数。**这些配置只存在于 GitHub 仓库设置，本地仓库里没有对应物**——改它们与 push 无关，改完下一轮运行即生效。
+
+### Secrets（必设 1 个）
+
+| 名称 | 必填 | 说明 |
+|---|---|---|
+| `LLM_API_KEY` | ✅ | LLM 服务商密钥（编程套餐 key 或按量 API key，须与 BASE_URL 指向的服务商一致）。缺失 = 纯规则模式降级运行 |
+
+### Variables（全部可选，缺省值够用）
+
+| 名称 | 缺省 | 说明 |
+|---|---|---|
+| `LLM_BASE_URL` | `https://api.deepseek.com` | 服务商 base 地址（**不带** `/chat/completions` 后缀）。协议随 URL 自适应：含 `anthropic` 字样（如智谱 Coding Plan `https://open.bigmodel.cn/api/anthropic`、`https://api.anthropic.com`）走 Anthropic `/v1/messages`，否则走 OpenAI 兼容 `/chat/completions` |
+| `LLM_MODEL` | `deepseek-chat` | 模型名（各端点的有效名单以 `diag-llm` 探针的模型清单输出为准） |
+| `LLM_PROTOCOL` | 自动 | `anthropic` \| `openai`，仅当 URL 自动判定不准时才需要设（如火山方舟 `ark.cn-beijing.volces.com/api/plan` 不含 anthropic 字样但实为 Anthropic 协议） |
+| `MAX_LLM_ITEMS` | `20` | 单轮 LLM 研判条数上限（成本闸：超限条目降级直通不研判） |
+| `LLM_MAX_CONTENT_CHARS` | 自动 | 每条输入内容的截取字符数。缺省时自动解析：模型端点元数据折算（上下文 token 数 → 字符，封顶 16000）→ 拿不到元数据则 3000；运行中遇"上下文超限"错误自动减半重试 |
+
+**换服务商/换额度来源 = 只改 `LLM_BASE_URL`（必要时连带 `LLM_API_KEY`），协议与内容窗口自动适配。** 改完跑一次 `diag-llm` workflow（Actions → diag-llm → Run workflow）验证：它会探测两种协议端点 + 模型清单，并给出「该端点是什么协议、当前判定对不对」的结论。
+
+无需设置的：`GITHUB_TOKEN` / `REPO` 由 workflow 运行时自动注入（P0 告警 Issue 用）；本机专属环境变量 `LOCAL_FEEDS_CHROME`（Yole 渲染的 Chrome 路径）不进 GitHub，见「本地 feed 生产者」。
+
+### Key 安全纪律（Public 仓库）
+
+1. 三层配合防护：触发器只有 `schedule` + `workflow_dispatch`（**fork 的 PR 默认拿不到 secrets**）；代码不打印/不落盘 key；key 缺失自动降级纯规则模式。
+2. 不要把 key 写进任何文件；泄露随时在 Settings 轮换。
 
 ## 快速开始
 
@@ -126,4 +148,4 @@ node src/main.mjs        # 本地跑一轮（无 key = 纯规则模式；无 GIT
 ## 路线图
 
 - v2：SEMI 反爬待解（可试与 Yole 同源的本地 stealth 渲染方案）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
-- 成本闸已内建：`MAX_LLM_ITEMS` 环境变量控制单轮研判条数上限
+- 成本闸已内建：`MAX_LLM_ITEMS` Variable 控制单轮研判条数上限（见「GitHub 配置项」）
