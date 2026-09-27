@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-09-27T03:12:17Z",
+ "checked_at": "2026-09-27T04:35:47Z",
  "sources": [
   {
    "name": "EE Times",
@@ -7,7 +7,7 @@
    "url": "https://www.eetimes.com/feed/",
    "status": 200,
    "entries": 10,
-   "ms": 229
+   "ms": 147
   },
   {
    "name": "Light Reading",
@@ -15,7 +15,7 @@
    "url": "https://www.lightreading.com/rss.xml",
    "status": 200,
    "entries": 50,
-   "ms": 423
+   "ms": 624
   },
   {
    "name": "Fierce Network",
@@ -23,7 +23,7 @@
    "url": "https://www.fierce-network.com/rss/xml",
    "status": 200,
    "entries": 25,
-   "ms": 63
+   "ms": 138
   },
   {
    "name": "TrendForce",
@@ -31,63 +31,63 @@
    "url": "https://www.trendforce.com/news/feed/",
    "status": 200,
    "entries": 20,
-   "ms": 1303
+   "ms": 1227
   },
   {
    "name": "SemiAnalysis",
    "kind": "rss",
    "url": "https://www.semianalysis.com/feed",
    "status": 403,
-   "ms": 111
+   "ms": 51
   },
   {
    "name": "SemiAnalysis",
    "kind": "rss",
    "url": "https://semianalysis.substack.com/feed",
    "status": 403,
-   "ms": 43
+   "ms": 38
   },
   {
    "name": "SemiAnalysis 备用端点",
    "kind": "rss",
    "url": "https://semianalysis.substack.com/feed",
    "status": 403,
-   "ms": 33
+   "ms": 36
   },
   {
    "name": "SEMI",
    "kind": "probe-only",
    "url": "https://www.semi.org/en/news-media-press",
    "status": 403,
-   "ms": 223
+   "ms": 154
   },
   {
    "name": "LightCounting",
    "kind": "probe-only",
    "url": "https://www.lightcounting.com/newsletters",
    "status": 200,
-   "ms": 437
+   "ms": 761
   },
   {
    "name": "Yole Group",
    "kind": "probe-only",
    "url": "https://www.yolegroup.com/articles/",
    "status": 202,
-   "ms": 157
+   "ms": 175
   },
   {
    "name": "IEEE 802.3",
    "kind": "probe-only",
    "url": "https://www.ieee802.org/3/",
    "status": 200,
-   "ms": 490
+   "ms": 863
   },
   {
    "name": "Vast.ai API",
    "kind": "api",
    "url": "https://console.vast.ai/api/v0/bundles/",
    "status": 200,
-   "ms": 136
+   "ms": 442
   }
  ]
 }
