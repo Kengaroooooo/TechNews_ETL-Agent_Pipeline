@@ -17,7 +17,7 @@ jobs:
           LLM_MODEL: ${{ vars.LLM_MODEL }}
         run: |
           node -e '
-          const base = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
+          const base = (process.env.LLM_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "").replace(/\/chat\/completions$/, "");
           const model = process.env.LLM_MODEL || "deepseek-chat";
           console.log("probe:", model, "@", base);
           fetch(base + "/chat/completions", {
