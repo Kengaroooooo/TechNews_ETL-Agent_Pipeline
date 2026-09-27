@@ -31,7 +31,7 @@ jobs:
         env:
           # LLM_API_KEY 为加密 Secret（Settings → Secrets and variables → Actions 设置）；
           # LLM_BASE_URL / LLM_MODEL / LLM_PROTOCOL / MAX_LLM_ITEMS / LLM_MAX_CONTENT_CHARS
-          # 为普通 Variables（非敏感，均可缺省：DeepSeek / 自动判协议 / 20 条 / 自动探测）
+          # 为普通 Variables（非敏感，均可缺省：DeepSeek / 自动判协议 / 不限条数 / 自动探测）
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
           LLM_MODEL: ${{ vars.LLM_MODEL }}

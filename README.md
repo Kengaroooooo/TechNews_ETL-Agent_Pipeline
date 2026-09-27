@@ -124,7 +124,7 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 | `LLM_BASE_URL` | `https://api.deepseek.com` | 服务商 base 地址（**不带** `/chat/completions` 后缀）。协议随 URL 自适应：含 `anthropic` 字样（如智谱 Coding Plan `https://open.bigmodel.cn/api/anthropic`、`https://api.anthropic.com`）走 Anthropic `/v1/messages`，否则走 OpenAI 兼容 `/chat/completions` |
 | `LLM_MODEL` | `deepseek-chat` | 模型名（各端点的有效名单以 `diag-llm` 探针的模型清单输出为准） |
 | `LLM_PROTOCOL` | 自动 | `anthropic` \| `openai`，仅当 URL 自动判定不准时才需要设（如火山方舟 `ark.cn-beijing.volces.com/api/plan` 不含 anthropic 字样但实为 Anthropic 协议） |
-| `MAX_LLM_ITEMS` | `20` | 单轮 LLM 研判条数上限（成本闸：超限条目降级直通不研判） |
+| `MAX_LLM_ITEMS` | 不限制 | 单轮 LLM 研判条数上限。缺省不限条数——真正的闸是 15 分钟总时间预算（`LLM_BUDGET_MS`），预算耗尽后剩余条目自动降级直通；设正整数可恢复条数闸 |
 | `LLM_MAX_CONTENT_CHARS` | 自动 | 每条输入内容的截取字符数。缺省时自动解析：模型端点元数据折算（上下文 token 数 → 字符，封顶 16000）→ 拿不到元数据则 3000；运行中遇"上下文超限"错误自动减半重试 |
 
 **换服务商/换额度来源 = 只改 `LLM_BASE_URL`（必要时连带 `LLM_API_KEY`），协议与内容窗口自动适配。** 改完跑一次 `diag-llm` workflow（Actions → diag-llm → Run workflow）验证：它会探测两种协议端点 + 模型清单，并给出「该端点是什么协议、当前判定对不对」的结论。
@@ -148,4 +148,4 @@ node src/main.mjs        # 本地跑一轮（无 key = 纯规则模式；无 GIT
 ## 路线图
 
 - v2：SEMI 反爬待解（可试与 Yole 同源的本地 stealth 渲染方案）；IEEE 802.3 文件列表采集器；ComputePrices（90+ 云厂挂牌，需注册 key）
-- 成本闸已内建：`MAX_LLM_ITEMS` Variable 控制单轮研判条数上限（见「GitHub 配置项」）
+- 成本闸已内建：单轮 15 分钟 LLM 总时间预算（缺省不限条数，`MAX_LLM_ITEMS` Variable 可另设条数上限，见「GitHub 配置项」）
