@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-10-01T07:11:42Z",
+ "checked_at": "2026-10-02T07:01:02Z",
  "sources": [
   {
    "name": "EE Times",
@@ -7,7 +7,7 @@
    "url": "https://www.eetimes.com/feed/",
    "status": 200,
    "entries": 10,
-   "ms": 240
+   "ms": 225
   },
   {
    "name": "Light Reading",
@@ -15,7 +15,7 @@
    "url": "https://www.lightreading.com/rss.xml",
    "status": 200,
    "entries": 50,
-   "ms": 424
+   "ms": 425
   },
   {
    "name": "Fierce Network",
@@ -23,7 +23,7 @@
    "url": "https://www.fierce-network.com/rss/xml",
    "status": 200,
    "entries": 25,
-   "ms": 142
+   "ms": 135
   },
   {
    "name": "TrendForce",
@@ -38,56 +38,56 @@
    "kind": "rss",
    "url": "https://www.semianalysis.com/feed",
    "status": 403,
-   "ms": 113
+   "ms": 57
   },
   {
    "name": "SemiAnalysis",
    "kind": "rss",
    "url": "https://semianalysis.substack.com/feed",
    "status": 403,
-   "ms": 39
+   "ms": 21
   },
   {
    "name": "SemiAnalysis 备用端点",
    "kind": "rss",
    "url": "https://semianalysis.substack.com/feed",
    "status": 403,
-   "ms": 31
+   "ms": 19
   },
   {
    "name": "SEMI",
    "kind": "probe-only",
    "url": "https://www.semi.org/en/news-media-press",
    "status": 403,
-   "ms": 220
+   "ms": 166
   },
   {
    "name": "LightCounting",
    "kind": "probe-only",
    "url": "https://www.lightcounting.com/newsletters",
    "status": 200,
-   "ms": 388
+   "ms": 352
   },
   {
    "name": "Yole Group",
    "kind": "probe-only",
    "url": "https://www.yolegroup.com/articles/",
    "status": 202,
-   "ms": 233
+   "ms": 323
   },
   {
    "name": "IEEE 802.3",
    "kind": "probe-only",
    "url": "https://www.ieee802.org/3/",
    "status": 200,
-   "ms": 688
+   "ms": 508
   },
   {
    "name": "Vast.ai API",
    "kind": "api",
    "url": "https://console.vast.ai/api/v0/bundles/",
    "status": 200,
-   "ms": 116
+   "ms": 387
   }
  ]
 }
