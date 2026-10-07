@@ -4,93 +4,342 @@
 <link>https://www.lightcounting.com/newsletters</link>
 <description>LightCounting LightTrends newsletters（本地 feed 生产者抓取）</description>
 <item>
+<title>We Must Be at the Peak of This Super-cycle</title>
+<link>https://www.lightcounting.com/newsletter/en/september-2026-ethernet-optics-372</link>
+<guid>https://www.lightcounting.com/newsletter/en/september-2026-ethernet-optics-372</guid>
+<description>LightCounting releases Ethernet Optics - September 2026 report
+
+Sales of Ethernet optical transceivers doubled in 2024 and increased by almost 90% in 2025. We expected a moderation in the market growth rate for 2026, but the first 9 months of the year derailed these projections. A sharp acceleration in capex spending of cloud companies started in late January-early February and it continued for the next 6 months.
+
+It is getting almost surreal. For example, Oracle spent almost $30 billion in the most recent quarter (up 235% year-over-year), generating less than $20 billion in revenue (up 30% y-o-y). This large established company is turning into a start-up, reinventing itself around AI. Capex of Alibaba and Tencent increased by 150-200% y-o-y in the most recent quarter, but revenue growth was a modest 15-20%.
+
+There must be limits to this trend. Even the most optimistic forecasters (including Nvidia) expect that capex growth will stay at 70% in 2027 &amp;ndash; about the same rate as in 2026. We assume &amp;ldquo;only&amp;rdquo; a 50% increase in capex for 2027 in our forecast model, since the supply chain tends to overreact to changes in capex momentum. It is clearly overreacting now: Innolight reported close to 200% y-o-y growth in sales of optical transceivers for the first half of 2026.
+
+We now expect 120% growth in the Ethernet optical transceiver market for 2026, as shown in the figure below. Our detailed forecast for 2027-2031 is based on the &amp;ldquo;Soft Landing&amp;rdquo; scenario.
+
+There is a lot more uncertainty for the market&amp;rsquo;s growth in 2027-2031 now compared to 6 months ago. It is possible that the &amp;ldquo;Fantastic Growth&amp;rdquo; will continue in 2027 and beyond. Even in this scenario, we assume that the market growth rate will decline from 120% in 2026 to 76% in 2027 and 20% by 2031. We must be at the peak of this super-cycle in terms of growth rate.
+
+Historical data on sales of optical transceivers in 2004-2025 shows a cyclical pattern as growth periods of 2-3 years are interrupted by a flat or negative year. Most of the cycles are due to supply chain rebalancing, and we will see a similar situation in 2027-2030. Our forecast projects for a &amp;ldquo;Soft Landing,&amp;rdquo; but a supply chain equilibrium is often restored by a market correction &amp;ndash; the &amp;ldquo;Bumpy Ride&amp;rdquo; scenario.
+
+The &amp;ldquo;Soft Landing&amp;rdquo; scenario also accounts for more efficient use of optical interconnects in AI clusters, enabled by new network architectures and improved XPU designs. For example, TPU-based clusters and multi-plane networks require less transceivers per XPU. New high-radix switches will also help to make the networks flatter and more efficient.
+
+The report covers more than 100 product categories, including 100G, 200G, 400G, 800G, 1.6T, 2.4T and 3.2T retimed transceivers, LPO/LRO and CPO/NPO sorted by reach and application. It segments the market by end customer into Cloud, Telecom and Enterprise. The Cloud segment is further split by end customer (TOP5 US, TOP5 China, Other Cloud) and by application (non-AI/front-end, scale-out and scale-up networks).
+
+More information on the report is available at: Ethernet Optics September 2026
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
+<pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
+</item>
+<item>
+<title>Highlights from CIOE 2026</title>
+<link>https://www.lightcounting.com/newsletter/en/september-2026-highlights-from-cioe-2026-455</link>
+<guid>https://www.lightcounting.com/newsletter/en/september-2026-highlights-from-cioe-2026-455</guid>
+<description>The 27th China International Optoelectronic Exposition (CIOE) was held in Shenzhen from September 9 to 11, 2026. The event attracted 189,755 visitors, up 32% from the prior year, including 6,850 overseas visitors, an increase of 12%. The information and communication segment of the exhibition featured over 1,000 exhibitors, covering companies across optical chips, optical components, optical modules, optical communication equipment, data center hardware, optical fibers, test instruments and other related product lines.
+
+This year&amp;rsquo;s exhibition saw a large influx of new companies entering the AI data center interconnect market, including startups, established telecom players, and optoelectronics companies. The industry&amp;rsquo;s fast growth has created supply scarcity for optical and electrical chips, creating opportunities for new suppliers.
+
+Hot topics at this year&amp;rsquo;s conference centered on 3.2T/6.4T NPO. Optical module vendors have begun live demonstrations of 400G/lane devices. Chinese electrical chip firms exhibited DSPs and 200G/lane driver and TIA chips. Silicon photonics specialists displayed next generation chips for NPO and related products.
+
+China&amp;rsquo;s leading cloud vendors shared their insights into the AI industry, their roadmaps for AI compute networks, and the evolution of interconnect technologies. Experts from the China Academy of Information and Communications Technology (CAICT) and the three major telecom operators outlined the current landscape and outlook for FTTx and optical transport networks, but the future of AI dominated the discussions.
+
+For example, Tencent disclosed key metrics for AI adoption. On the left side of the figure below, WorkBuddy&amp;rsquo;s user base grew 2.4x from March to June 2026, with per-user token consumption rising 10x. Progress in industrial applications of AI (like WorkBuddy) is rarely mentioned in the press. The media is fascinated with the generative AI and applications supporting it (including DeepSeek). WorkBuddy is slowly but steadily closing the gap in users and tokens with DeepSeek. This is very encouraging, especially when the public is questioning the safety of generative AI.
+
+Full text of the research note is available to subscribers at: https://www.lightcounting.com/login .
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
+<pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
+</item>
+<item>
 <title>New Technologies and Fresh Insights for Scale-out and Scale-up Optical Interconnectio...</title>
 <link>https://www.lightcounting.com/newsletter/en/september-2026-new-technologies-and-fresh-insights-for-scale-out-and-scale-up-optical-interconnection-454</link>
 <guid>https://www.lightcounting.com/newsletter/en/september-2026-new-technologies-and-fresh-insights-for-scale-out-and-scale-up-optical-interconnection-454</guid>
+<description>HiSilicon Optoelectronics and LightCounting jointly hosted a summit on Future-Oriented AI Computing Networks and High-Speed Optical Interconnect Technologies at CIOE 2026. The summit drew an impressive on‑site audience of nearly 600 participants.
+
+This Summit brought together experts from Huawei, Tencent, Meituan, H3C, FiberHome, HiSilicon Optoelectronics, Marvell, HG Genuine, Lumentum, and YOFC. While the presentations reflected some shared industry consensus, they also delivered a wealth of distinctive insights and practical solutions.
+
+Huawei presented its experience with deployment of 800G SR8 LPO in scale-up networking. Tencent disclosed test results for 3.2T NPO silicon photonics and VCSEL solutions, and optimization approaches to LGA package challenges. HiSilicon Optoelectronics introduced an NPO solution with integrated quantum dot lasers. HG Genuine reviewed NPO standards progress. Meituan proposed solutions to improve network stability by leveraging AI agents. Marvell elaborated on diverse interconnect solutions and trends for scale-out and scale-up. Lumentum discussed technical challenges for next-generation CW and EML lasers. H3C and FiberHome both shared multiple technologies for AI data center interconnections and their outlook. YOFC presented new fiber technologies including polarization-maintaining fiber, multi-core fiber and hollow-core fiber.
+
+Full text of the research note is available at no charge at the Resources page: https://www.lightcounting.com/resources
+
+Full text of the research note is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>NPO Makes All the Headlines, but the Pluggables Set New Sales Records</title>
 <link>https://www.lightcounting.com/newsletter/en/september-2026-quarterly-market-update-371</link>
 <guid>https://www.lightcounting.com/newsletter/en/september-2026-quarterly-market-update-371</guid>
+<description>LightCounting releases Quarterly Market Update &amp;ndash; September 2026
+
+As this report goes to print, the industry is wrapping up a busy week at CIOE, where NPO dominated many of the discussions. A few years ago, the industry was just as fascinated with linear drive pluggables (LPO), but sales of re-timed pluggable transceivers continue to set up new records.
+
+The latest data from transceiver suppliers, shown in the figure below, illustrates the new record set in Q2 2026 and our estimates for the rest of the year. Sales of Ethernet transceivers account for about 80% of the total market now. Yes, it does include a very modest contribution from LPO/LRO, but the vast majority are the &amp;ldquo;old-fashioned&amp;rdquo; fully re-timed modules.
+
+It is also notable that shipments of &amp;ldquo;legacy products&amp;rdquo;&amp;mdash;800G 2xDR4 and 2xFR4, as well as 400ZR/ZR+, were up sharply in Q2, by up to 3x year-over-year in terms of units, well ahead of our expectations. Unit shipments of 100G and 400G Ethernet transceivers also set new records. Even 10G Ethernet was up. Yes, volume shipments of 1.6T Ethernet transceivers and 800ZR/ZR+ are off to a great start this year, but this was less surprising.
+
+Another surprise announced a few hours ago was Oracle&amp;rsquo;s capex of $28.5 billion for Q2 2026, which was up 235% year-over-year and 73% quarter-over-quarter, exceeding the revenue for the quarter by almost $10 billion. We have reported on &amp;ldquo;financial engineering of the future&amp;rdquo; in the past and this data point is a good example of it.
+
+Tencent&amp;rsquo;s capex surged 194% y-o-y in Q2, reaching $7.7 billion, up 68% sequentially. Alibaba&amp;rsquo;s capex was $9.9 billion for the quarter, up 86% year-over-year and up 156% compared to the previous quarter, used primarily to build AI compute infrastructure. Baidu&amp;rsquo;s capex for the quarter reached $1.67 billion, surging 219% year‑on‑year and 96% quarter‑on‑quarter.
+
+Nvidia commented that it expects to see another 70% growth in capex of cloud companies for 2027&amp;mdash;similar to the growth reported by the TOP 4 Cloud companies in 2026. Nvidia must know this well, since the company is engineering multiple financial projects to support the hyper growth.
+
+Nvidia&amp;rsquo;s Data Center revenue was a record $89.2 billion (93% of total), up 117% y-o-y and up 18% q-o-q. Broadcom&amp;rsquo;s revenue was a record $29.6 billion, up 86% y-o-y and up 33% q-o-q. Broadcom&amp;rsquo;s revenue from custom XPU was up 3.5x y-o-y and AI networking was up 2.5x y-o-y.
+
+Leading suppliers of optical transceivers reported record revenues and profits, despite component shortages:
+
+Innolight achieved a record revenue of $3.3 billion in Q2, up 192% year-over-year and up 16% sequentially. The company&amp;rsquo;s net income was $1.16 billion, up 249% year-over-year and up 40% sequentially. Gross margin increased this quarter, driven by sequential volume growth of 1.6T products.
+
+Eoptolink reported a record revenue of $1.8 billion in Q2, up 109% year-over-year and up 53% sequentially. The company&amp;rsquo;s net income was $698 million, up 113% year-over-year and up 74% quarter-over-quarter.
+
+The Quarterly Market Update report is available to subscribers at: https://www.lightcounting.com/login .
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Evolution of Network Architectures is Accelerating</title>
 <link>https://www.lightcounting.com/newsletter/en/september-2026-august-conferences-bring-the-heat-453</link>
 <guid>https://www.lightcounting.com/newsletter/en/september-2026-august-conferences-bring-the-heat-453</guid>
+<description>LightCounting reports on highlights from OCP APAC, Hot Interconnects, Hot Chips, and Sigcomm
+
+by Daryl Inniss, Vlad Kozlov, and Bob Wheeler
+
+The annual Hot Chips conference was held at Stanford University on August 23-25, with the in-person event selling out and the livestream bringing total attendance to about 3,000. Although there were presentations from leading chip vendors such as AMD, Intel, and Nvidia, the biggest AI theme was the parade of custom XPUs, including Google's TPU 8t/i, Meta's MTIA400, Microsoft's MAIA-200, and OpenAI's Jalape&amp;ntilde;o.
+
+In scale-up networking, multiple presentations showed switch topologies based on Broadcom's Tomahawk6 (TH6). AMD showed its Helios switch tray, which contains a pair of TH6 chips connected to backplane connectors using flyover cables. OpenAI disclosed the scale-up network for its Jalape&amp;ntilde;o ASIC, as shown in the figure. Like AMD, OpenAI uses TH6 to connect accelerators within one rack. This copper interconnect maximizes the bandwidth between 128 ASICs for tensor-parallel processing. A second &quot;global&quot; domain with one-third the bandwidth per accelerator of the local domain then uses optics to connect 16 racks of total 2,048 Jalape&amp;ntilde;os.
+
+Limiting the interconnect bandwidth in the global domain to one-third of that of the local domain must have been the key for practical implementation using pluggable transceivers. This approach is similar to Huawei&amp;rsquo;s implementation of its Atlas 950 SuperPod . This must be a temporary fix while the industry is developing higher bandwidth scale-up interconnects, but it certainly adds urgency to CPO/NPO development.
+
+An important trend in scale-out networking is the adoption of multi-plane topologies, which effectively multiply switch radix to flatten networks. The server network interface (NIC) splits its bandwidth across multiple ports, typically eight. For example, Broadcom's Thor Ultra supports up to eight planes for the new Multipath Reliable Connection (MRC) specification developed by AMD, Broadcom, Intel, Microsoft, Nvidia, and OpenAI. Similarly, Nvidia's Vera Rubin platform spreads 1.6T per GPU across eight planes using ConnectX-9 NICs and Spectrum-6 switches. Google's new Virgo Network, which it uses to scale out both GPU and TPU clusters, employs two levels of switching using a multi-plane topology.
+
+The first 102.4T switches handle a radix up to 512 ports, meaning they support 512x200G ports. Using these switches in an 8-plane two-level topology yields a maximum of 1 million end points. This means hyperscalers can build a GPU cluster using only two switch tiers. Connecting the multi-port NIC to 8 switches requires DR optics where the fibers can be broken out to connect to the separate planes. This network can be built using four optical transceivers per GPU, which is well below today's average consumption. This trend could therefore cause optical-transceiver growth to underperform that of GPUs and XPUs.
+
+Our latest forecast correlates shipments of GPUs/XPUs with Ethernet transceivers and CPO/NPO, accounting for different network architectures. We anticipated that future architectures will be more efficient, but this may be happening faster than we expected.
+
+The full text of this research note is available to LightCounting&amp;rsquo;s subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>More Suppliers Switch to the Fast Lane as AI Boom Continues</title>
 <link>https://www.lightcounting.com/newsletter/en/august-2026-more-suppliers-switch-to-the-fast-lane-as-ai-boom-continues-452</link>
 <guid>https://www.lightcounting.com/newsletter/en/august-2026-more-suppliers-switch-to-the-fast-lane-as-ai-boom-continues-452</guid>
+<description>LightCounting releases a research note on the early financial results for Q2 2026
+
+by Stelyana Baleva, Carol Cao, Roy Rubenstein, Igor Lomtev and Vlad Kozlov
+
+Q2 2026 financial results reported so far indicate that the market momentum remains positive despite the ongoing concerns about the future of AI. Many suppliers reported acceleration in revenue growth and record bookings. Shortages for a wide range of optical components are limiting the growth, while double ordering is inflating the bookings and forecasts for the future. Our latest forecast offers a more balanced view.
+
+The shortages created opportunities for new suppliers. Having 2-3 suppliers used to be the norm, now it is 5-7. Qualifying and managing all of them is a new challenge. Applied Optoelectronics , Macom , and MaxLinear have already reported accelerating growth in Q2 2026 and we expect to see more examples in the upcoming earnings reports.
+
+Coherent and Lumentum have also reported improvements in growth rates for the last quarter, catching up with Eoptolink and Innolight (reporting at the end of August). Eoptolink has already disclosed a sharp increase in the profits expected for Q2. Accelink and CIG also report sharply higher profits.
+
+Tower Semiconductor reported triple-digit growth (y-o-y) in silicon photonics revenue in Q2 2026. GlobalFoundries plans to double its silicon photonics business in 2026.
+
+Cisco reported &amp;ldquo;a remarkable 28% y-o-y increase&amp;rdquo; in the networking segment revenues, up from 25% in Q1, but still shy of Arista&amp;rsquo;s 38% growth. Cisco reported three new hyperscale AI design wins and 40% growth in orders during the quarter. The company also reported record orders for campus networking &amp;ndash; up 20% y-o-y.
+
+Is the AI boom starting to lift &amp;ldquo;all the boats&amp;rdquo; (meaning multiple market segments)? The enterprise networking segment is growing and even the telecom networking shows signs of activity:
+
+Capex of Telecom Service Providers (TSPs) is still expected to be flat (or down 1%) in 2026, but AT&amp;T and Comcast reported 16% and 20% y-o-y growth in capex for Q2, respectively. Both companies are investing more in broadband access. Will Verizon join the race? Verizon&amp;rsquo;s capex was also up, but only by 5% in Q2.
+
+Calix reported 21% y-o-y growth in Q2 and guided for another 15% in the current quarter. Growth in company&amp;rsquo;s revenue is attributed to sales of broadband equipment and AI-enhanced software to telecom operators. Extreme Networks reported 14% y-o-y growth in product sales, in part driven by success of its agentic AI networking platform.
+
+Capex of the TOP15 TSPs (reported so far) was up 7% in Q2&amp;mdash;a positive sign but a tiny step in comparison with the capex of the TOP15 CSPs (reported so far) which was up 83% in Q2. Tencent holds a record for the highest growth&amp;mdash;up 194% y-o-y, reaching $7.7 billion for the quarter. Amazon is the largest spender with $54.2 billion for the quarter, up 73% y-o-y. Amazon also increased guidance for 2026 capex from $200 billion to $220 billion.
+
+As discussed in our recent newsletter , the key question is how much CSPs will spend in 2027. The Figure above illustrates the capital intensity of the TOP 4 Cloud companies. It is up sharply: Meta is already at 51% and Microsoft is at 46% in Q2. Oracle (not included in the figure) would have been off the chart at above 80% in Q1. The company reports earnings in early September and the key question is how it intends to finance future investments. Some moderation in spending growth is well needed.
+
+Recent fundraising activities of Anthropic and OpenAI , supported by Nvidia , were widely covered in the media. The numbers start at $500 billion, but being close to a trillion is a preferred option. Some financial experts refer to these activities as the &amp;ldquo;future for financial engineering.&amp;rdquo; Any innovation comes with some risk, but we all hope for the best.
+
+Full text of the research note is available at: https://www.lightcounting.com/login
+
+____________________________________________________________________________
+
+Complete analysis of Q2 2026 results and financial trends of the CSP, TSP, equipment, optical components, and semiconductor segments of the communications industry will be published in September in LightCounting&amp;rsquo;s next Quarterly Market Update .
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Sat, 01 Aug 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>The industry supply chain remains red hot, as investors search for balance between fe...</title>
 <link>https://www.lightcounting.com/newsletter/en/july-2026-cloud-data-center-optics-385</link>
 <guid>https://www.lightcounting.com/newsletter/en/july-2026-cloud-data-center-optics-385</guid>
+<description>LightCounting releases July 2026 Cloud Data Center Optics Report
+
+As this report goes to print, the global financial community is starting to have doubts about returns on investments in AI. The fear is getting in the way of the fear of missing out at the moment and these daily and weekly mood swings will continue. The industry supply chain remains red hot and it got even hotter in the last 2-3 months.
+
+LightCounting increased its forecast for optical interconnects in April-May of this year, but the latest forecast is even higher. We now expect that sales of Ethernet optical transceivers will ramp by 73% in 2026, propelling the market to $80 billion by 2031, even with fairly conservative assumptions for growth in 2027 and beyond.
+
+The acceleration in demand started in early February when Amazon, Google, Meta and Microsoft announced higher than expected planned capex for 2026. The capex projections continue to go up, with a minor reduction from Microsoft in their most recent earnings report being the only exception.
+
+The big question is how will the capex look next year? We may not know until the end of January 2027, but our forecast assumes a significant moderation in the growth rate: from 70% in 2026 to 30% in 2027. Enthusiasm around AI will inevitably subside and even companies like Google will struggle to double their spending indefinitely.
+
+This a big change, but even if the capex growth changes from 70% in 2026 to 50% next year, sales of transceivers may only grow by 30-40% in 2027 because of &amp;ldquo;non-linearity of the supply chain&amp;rdquo;. Surging demand creates shortages for components, leading to double ordering and record backlogs until the momentum changes and excess inventories pile up.
+
+Figure below compares year-over-year quarterly growth in sales of Ethernet optical transceivers and the combined capex of Amazon, Google, Meta and Microsoft (Top 4 CSPs). The correlation is clear.
+
+A closer look at this data reveals that growth in sales of transceivers turns negative six months ahead of capex. Transceiver sales start to fall as soon as the capex trajectory starts to point downward, illustrated by dashed green arrows. The sharper the change in the capex trend, the deeper the correction for the transceiver market. The current capex trend is very flat. If the growth in capex declines gradually, it should not trigger any non-linear effects in the supply chain, ensuring a soft landing for the market in 2027-2028. A &amp;ldquo;correction of some kind&amp;rdquo; is a more likely scenario, and that is why we keep our longer-term forecast assumptions as conservative as we can.
+
+Back in January 2026, we were hoping that shortages of InP lasers would be gone by now. With the latest surge in demand, the shortages may stretch into the middle of next year. Almost every component used in high-speed transceivers is in short supply now, as double ordering proliferated across the industry. This situation has never ended well in the past. More people in the industry feel the crazy vibes of 2000-2001, but what can you do? Not going after the opportunities is rarely an option.
+
+Silicon Photonics foundries are reporting an unprecedented level of development activity, mostly for NPO. Future applications in scale-up networks are the primary focus, but we expect that both CPO and NPO will be used for scale-up and scale-out applications.
+
+This report includes a forecast for sales of DWDM coherent transceivers for networks interconnecting cloud data centers, including scale-across. We increased our forecast for sales of 800G ZR/ZR+ transceivers in 2026-2027, but shortages of components may derail these expectations.
+
+The report also includes an updated forecast for AECs and ACCs used by the leading cloud companies. Copper cables continue to challenge plans for all-optical connectivity. It is good to have an ambitious competitor. If it does not kill you, it will make you stronger.
+
+The new report is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Wed, 01 Jul 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Co-Packaged and Near-Packaged Optics (CPO/NPO)</title>
 <link>https://www.lightcounting.com/newsletter/en/july-2026-co-packaged-and-near-packaged-optics-cponpo-451</link>
 <guid>https://www.lightcounting.com/newsletter/en/july-2026-co-packaged-and-near-packaged-optics-cponpo-451</guid>
+<description>Highlights from LightCounting&amp;rsquo;s 2 nd virtual conference by Carol Cao, Bob Wheeler, Vladimir Kozlov, Daryl Inniss, and Roy Rubenstein
+
+This year&amp;rsquo;s LightCounting Virtual Conference attracted more than 1400 live attendees, double the attendance of last year&amp;rsquo;s conference. And close to 3000 people watched the event, indicating the significance and timeliness of this topic. A replay of the event and the presentations are available on the Resources page on LightCounting&amp;rsquo;s website.
+
+The event added NPO to the discussion alongside CPO; given the recent NPO activity, it could not be ignored. The long-standing industry question of when CPO would be commercialized was answered in the fireside chat with Gilad Shainer, Nvidia&amp;rsquo;s Senior VP of Networking. He confirmed that CPO is in manufacturing for scale-out architectures and to expect end-products to hit the market this year. CPO is needed as it delivers higher density, lower power, lower loss, and less errors. Shainer acknowledged that CPO and NPO will co-exist, confirming that there is a place for NPO. If Nvidia starts offering NPO as an option, this would shorten the development cycle and we may see first deployments next year.
+
+The event included three sessions and a closing discussion:
+
+LightCounting released its report titled Silicon Photonics, LPO/LRO and CPO/NPO - May 2026 , which forecasts the market trend of optical modules based on different material technologies. A clear description and analysis of CPO and NPO are included there.
+
+Full text of the research note is available at no charge at the Resources page: https://www.lightcounting.com/resources
+
+Full text of the research note is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Wed, 01 Jul 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Atlas 950 SuperPoD: Achieves All-Optical Interconnection with Superior Cost and Power...</title>
 <link>https://www.lightcounting.com/newsletter/en/july-2026-atlas-950-superpod-achieves-all-optical-interconnection-with-superior-cost-and-power-efficiency-450</link>
 <guid>https://www.lightcounting.com/newsletter/en/july-2026-atlas-950-superpod-achieves-all-optical-interconnection-with-superior-cost-and-power-efficiency-450</guid>
+<description>LightCounting reports on highlights from WAIC 2026
+
+The 2026 World Artificial Intelligence Conference (WAIC) was held in Shanghai from July 17th to 20th. It centered on intelligent computing infrastructure, general-purpose large models, embodied intelligence and industrial AI applications, featuring technology showcases and professional academic exchanges.
+
+Huawei&amp;rsquo;s Atlas 950 SuperPoD made its first public appearance at WAIC 2026, serving as the conference&amp;rsquo;s main highlight. The showcased system combined 1,024 Ascend 950 NPUs into a SuperPoD, using UnifiedBus (UB) 2.0 communication protocol and a hybrid mesh/Clos network architecture.
+
+Atlas 950 SuperPoD also brings substantial optimizations at chip, rack, and system levels, with major improvements in performance, energy and cost efficiency. It delivers 1 EFLOPS (FP8) / 2 EFLOPS (FP4) peak compute, supports a 256TB global unified memory address space, provides TB scale inter NPU bandwidth, and achieves end-to-end RTT as low as 3&amp;mu;s. In comparison, CloudMatrix 384, released last year, features 48TB global unified memory and 392 GB/s one way bandwidth per NPU.
+
+The system&amp;rsquo;s network relies on both copper and optical interconnects:
+
+The system on display and shown in the photo above, included 16 compute racks and 4 central switch racks interconnected with 4,096 of 800G optical transceivers. It is the first supernode design adopting Linear-drive Pluggable Optics (LPO). Built on Huawei&amp;rsquo;s 100G VCSEL technology and opto-electronic co-design capabilities, the LPO solution optimizes the system costs, latency and power consumption.
+
+Compared with CloudMatrix 384, Atlas 950 SuperPoD adopts a more compact cabinet layout.
+
+It can be seen from the front view of Atlas 950 SuperPoD, each compute rack is configured with 8 NPU trays and 8 CPU trays. Each NPU tray carries 8 NPUs, reaching a total of 64 NPUs per compute rack.1024-NPU cluster is composed of 16 compute racks plus 4 central switch racks. By comparison, CloudMatrix 384 is built with 12 compute racks and 4 switch racks. Each compute rack contains 4 compute nodes, and each node is equipped with 8 NPUs together with host CPUs.
+
+From the rear view, the quantity and layout of ports have changed. The compute rack of CloudMatrix 384 has 256 QSFP-DD modules in 4 vertical columns, while Atlas 950 SuperPoD has 128 modules in 8 columns. The configuration has evolved from 8&amp;times;400G modules per NPU to 2&amp;times;800G modules per NPU. Calculating from the on-site displayed compute racks, the total number of optical modules required for the compute part of SuperPoD is 4,096 (including server and UB switch sides). On average, each NPU is associated with four 800G OSFP modules.
+
+An orthogonal electrical interconnection is deployed between the front tray and the rear plug-in boards of the compute rack of Atlas 950 SuperPoD.
+
+LightCounting will publish Cloud Data Center Optics report at the end of July, covering network infrastructure and optical interconnects across major cloud companies.
+
+Full text of the research note is available to subscribers at: https://www.lightcounting.com/login .
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Wed, 01 Jul 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>VCSEL Technology Advances as Standards and Applications Expand</title>
 <link>https://www.lightcounting.com/newsletter/en/july-2026-vcsel-technology-advances-as-standards-and-applications-expand-449</link>
 <guid>https://www.lightcounting.com/newsletter/en/july-2026-vcsel-technology-advances-as-standards-and-applications-expand-449</guid>
+<description>LightCounting reports on highlights from IPEC Multimode Forum by Carol Cao, Daryl Inniss and Vladimir Kozlov
+
+The emerging picture for VCSELs and particularly multimode-based ones are both encouraging and cloudy. As the above chart shows, there are numerous advantages to using this technology. The cost, power consumption, and reliability are all excellent and well positioned to support AI-based architectures. While distance and per-lane bandwidth may pose an issue, the high density makes up for the latter, and the distance supported is suitable for the targeted applications.
+
+One factor that is not included in the chart is ease of use. Given this technology uses multimode fiber, the coupling tolerance is expanded significantly compared to using single mode fiber. This simplifies installation, thereby further reducing costs.
+
+So, why the cloudy picture? Silicon photonics and integration promise lower cost, provide longer transmission distance, and a higher bandwidth solution. However, this is accomplished at the expense of higher power consumption. Nonetheless, some have made the switch from VCSELs and multimode to silicon photonics and single mode fiber and the question is how much of the market would switch and over what period. And therein lies the ambiguity. China has long been a proponent of multimode fiber for data center networking. Vendors in North America and Japan are developing high-bandwidth VCSELs that can be advantageously used in AI architectures with particular interest in a new wavelength, the 1060 nm back side emitters (hear more at the upcoming LightCounting&amp;rsquo;s virtual CPO/NPO Conference on July 15 th ). Incumbency is difficult to displace, and notwithstanding the advantages of silicon photonics, multimode-based transmission links with VCSELs are likely to retain a meaningful role. China Fiber Connect Forum (CFCF) was held in Suzhou from June 25th to 27th. During the event, IPEC (International Photonics &amp; Electronics Committee) hosted the Multimode Industry Forum and officially launched the 800G eSR8 standard. Thirteen member enterprises jointly demonstrated the interconnection and interoperability of 800G eSR8 solutions. In addition, IPEC debuted the transmission performance of 1.6T SR8 multimode modules over 30-meter OM4 fibers, as well as the dynamic performance of 3.2T VCSEL-based NPO optical engines. Experts from Baidu, Meituan, Kuaishou, HiSilicon Optoelectronics, HGTECH, LIGENT and YOFC discussed AI network evolution, progress in VCSEL and multimode fiber technologies. LightCounting presented multimode optical module market forecasts and trends (see the May 2026 report, Silicon Photonics, LPO/LRO and NPO/CPO ). Full text of the research note is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Wed, 01 Jul 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Converting telephone exchanges to AI edge nodes: how AI is challenging the telecom se...</title>
 <link>https://www.lightcounting.com/newsletter/en/june-2026-telecom-network-transformation-373</link>
 <guid>https://www.lightcounting.com/newsletter/en/june-2026-telecom-network-transformation-373</guid>
+<description>LightCounting releases June 2026 Telecom Network Transformation Report LightCounting has been publishing the Telecom Network Transformation report for almost a decade, tracking the telecom service providers&amp;rsquo; (TSPs) progress in transforming their networks and businesses. While revenues of the top 15 TSPs tracked by LightCounting have remained stubbornly flat during this period, they have made real progress in disaggregating and automating their networks. These developments position them well in the era of AI. Yet, AI is a technology that makes the TSPs uncomfortable: they are risk-averse, financially constrained businesses but are fully aware of AI&amp;rsquo;s significance. They also fear missing out on another technology turning point. TSPs are already using AI to become more efficient. AI chatbots are improving their customer service, AI is helping diagnose faults faster and improving their in-house engineering efficiency to deliver new projects. These AI advantages are seen is many other businesses, but is there a unique AI-enabled opportunity for TSPs? Can TSPs use their reputation as trusted entities with governments, enterprises, and consumers to offer secure AI services? Sovereign AI is a good example here. TSPs can ensure their networks confine and secure data traffic within borders. TSPs are also experts at managing massive networks and have valuable network assets. Telefonica is repurposing 17 telephone exchanges in Spain to offer AI edge nodes to enterprises. This will also be part of a wider network involving other European service providers. Several TSPs are trialing AI-RAN which promises not just improved RAN performance (lower energy consumption and spectral efficiency) but hardware that can also run AI edge workloads. For providing AI connectivity, the TSPs face competition from players such as wholesalers addressing data center connectivity, who also understand sovereignty issues. And both wholesalers and hyperscalers are watching AI edge developments. Is there anything else? The figure below shows the different elements of AI that the TSPs can address and the value associated with each role as they go up the stack. Also shown are the core strengths TSPs bring to AI.
+
+The choices available for TSPs are also defined by where they operate. In China, for example, the latest Five-Year Plan (2026-2030) ensures Chinese TSPs play a key role as part of China&amp;rsquo;s AI ambitions. Huawei cites how Chinese TSPs are using automation to create added-value services and grow revenues. In the home, the Chinese TSPs have gone from offering FTTH to FTTR connectivity. And now they offer service level agreement (SLA) home connectivity with quality guarantees as well as AI intelligence added to their home service offering. At sport events, spectators can buy a premium service by scanning a QR code that guarantees mobile uplink capacity for the duration of the event. Other regions have their own defining characteristics. The U.S. has leading hyperscalers, AI models and silicon developers, constraining the TSPs in what they can do. Europe has no global hyperscaler, few AI model developers, and no large scale xPU developer which explains why AI sovereignty is so important. India is a new and booming AI marketplace: a great opportunity for its leading TSPs. Meanwhile, the Japanese TSPs have significant AI strengths, and like the Chinese TSPs, also plan to span the AI stack. The AI market opportunity for TSPs is largely still to happen. Using AI to be more efficient companies is already a significant gain. Yet, certain TSPs will do better than their peers. Look to the TSPs in China and Japan for the most promising candidates to define what an AI telco will look like. The new report is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>AI to Reshape Optical Networking in China</title>
 <link>https://www.lightcounting.com/newsletter/en/june-2026-ai-to-reshape-optical-networking-in-china-448</link>
 <guid>https://www.lightcounting.com/newsletter/en/june-2026-ai-to-reshape-optical-networking-in-china-448</guid>
+<description>LightCounting reports on highlights from OptiNet China 2026 by Carol Cao, Vladimir Kozlov, Daryl Inniss, and Roy Rubenstein June 15th , 2026 The 26th OptiNet China Conference was held in Beijing on June 3 rd and 4 th , 2026. The event gathered senior specialists from China&amp;rsquo;s main three telecom operators, China&amp;rsquo;s domestic cloud companies, equipment manufacturers, and other industry players. Compared with the previous year, the conference placed less emphasis on telecom access networks and satellite communications, while AI took center stage. Speakers discussed how AI is redefining networks and impacting transmission equipment, optical modules, optical fibers and other related products. According to the telecom operators, current AI traffic is mostly concentrated within data centers and has not yet driven substantial growth in public network traffic. Nevertheless, the emergence of new services creates strong demand for high-performance interconnections between data centers. Accordingly, data center interconnect (DCI) technologies were a major discussion topic and provided valuable insight for the industry. This research note summarizes the conference&amp;rsquo;s key DCI-related discussions. Full text of the research note is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Acacia is on fire and so is the broader transceiver market</title>
 <link>https://www.lightcounting.com/newsletter/en/june-2026-quarterly-market-update-375</link>
 <guid>https://www.lightcounting.com/newsletter/en/june-2026-quarterly-market-update-375</guid>
+<description>LightCounting releases Q2 Quarterly Market Update &amp;ndash; June 2026 Q1 2026 was the best quarter for the optical transceiver market since LightCounting started collecting data back in 2004. We estimate the sales of transceivers and AOCs at around $10 billion &amp;ndash; up more than 90% from Q1 2025. As illustrated in the figure below, market growth is starting to look truly exponential, as the growth rate has remained above 70% for more than a year. Our final count for sales of optical transceivers and related products in 2025 stands at $26.8 billion, up 74% from 2024. We were hoping to see some moderation of the growth in 2026, conforming to our soft-landing forecast scenario, but the exponential market trajectory seems relentless. Supply constrains are easing now and this adds gasoline to the fire, not to mention the sky-high spending of the leading cloud companies.
+
+Many companies set new records in Q1 2026, led by Innolight &amp;ndash; up 207% y-o-y, as we reported in our early results research note , released on May 14 th . Acacia&amp;rsquo;s record also clearly stands out. Cisco CEO Chuck Robbins commented, &amp;ldquo;Acacia business had its strongest quarter to date with more than $1 billion in orders in Q3 (calendar Q1) and it is on track to grow over 200% year-over-year in fiscal year '26 (ending in July 2026). Acacia is leading the coherent pluggable optics market, and we see strong momentum across this business.&amp;rdquo; He also added that &amp;ldquo;the Acacia business is on fire.&amp;rdquo; We (LightCounting) have never seen 200% growth in the coherent transceiver market, not since Acacia&amp;rsquo;s early days in this market. This report includes historical data and estimates for Q2 2026 on shipments of coherent DWDM ports, including 800ZR/ZR+, which started selling in the end of last year. The ramp in 800ZR/ZR+ has to be phenomenal to achieve 200% growth in Acacia&amp;rsquo;s business and our estimates for Q2 2026 may be low. Among many factors that propelled Acacia and Innolight to 200% growth, excellence in supply chain management is really important now, as the industry is hobbled by shortages. Acacia outperformed the competition during the previous cycle, when demand picked up during the COVID shutdown and its supply chain management excellence was a key factor. Ciena and Nokia are not standing still and both companies improved their supply chain management since COVID. Nokia&amp;rsquo;s CEO Justin Hotard said that for this year he sees the momentum &amp;ldquo;on the back of our 800G pluggables and the associated line systems and platforms.&amp;rdquo; Ciena&amp;rsquo;s CEO Gary Smith also commented on &amp;ldquo;strong demand from hyperscalers for our 400G and 800G pluggables, and we remain on track to more than double our pluggable revenue from 2025.&amp;rdquo; More than doubling may fall below 200%, but it is still remarkable. A &amp;ldquo;hidden&amp;rdquo; factor in Acacia&amp;rsquo;s success may be its business in selling silicon photonic optical engines to the broader transceiver market where Acacia competes with Intel, Sicoya, Silith and Xphor. According to our recently published report &amp;ldquo;Silicon Photonics, LPO/LRO and CPO/NPO&amp;rdquo; , sales of silicon photonics chips will be up 110% in 2026. Most of these chips will be manufactured by Innolight and other transceiver vendors internally (at foundries), but large customers require more diversification. Merchant suppliers of silicon photonics chips may see higher growth in their business, probably reaching close to 200%. There is a significant level of activity in NPO development, which is hard to quantify in terms of sales, but it certainly boosts demand for silicon photonics chips. Stay tuned for an upcoming LightCounting&amp;rsquo;s CPO/NPO conference planned for July 15 th . A formal announcement will be sent out next week. LightCounting's Quarterly Market Update reports are designed to provide an easy-to-digest snapshot of optical transceiver growth trends, backed up with detailed quarter-by-quarter sales data collected via LightCounting's proprietary vendor survey. Performance metrics and commentary for top-tier telecom operators, cloud companies, network equipment makers, optical component and semiconductor vendors are also included. The Quarterly Market Update report is available to subscribers at: https://www.lightcounting.com/login .
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>Advances in PIC Packaging</title>
 <link>https://www.lightcounting.com/newsletter/en/june-2026-advances-in-pic-packaging-447</link>
 <guid>https://www.lightcounting.com/newsletter/en/june-2026-advances-in-pic-packaging-447</guid>
+<description>LightCounting reports on highlights from ECTC 2026 by Daryl Inniss June 2, 2026 The 76 th annual Electronic Components and Technology Conference (ECTC) was held May 26-29, in Orlando, FL. There was a record of over 2700 attendees and over 400 technical papers presented. The keynote presentation by Dr. Tien Wu, CEO of ASE, set the stage by highlighting that hardware is the bottleneck to AI growth. He did not frame this as a problem as it may be a damping force to a market bubble. Moreover, he implored the industry to recognize that even bigger semiconductor manufacturing challenges, that are opportunities, lie ahead. ECTC is an electronic packaging conference, nonetheless silicon photonics was well represented, illustrating the importance of photonics to the semiconductor industry. The main issue is reducing power consumption while increasing interconnection bandwidth. The three sessions on photonics packaging are summarized here. Most presentations were focused on co-packaged optics (CPO). Researchers are developing scalable, manufacturable, reliable, and cost-effective processes. Waveguide materials including glass and polymer were highlighted. There were edge and surface coupling. There was a focus on passive alignment, decreased sensitivity to alignment tolerances, and wafer scale manufacturing processes. In case you missed the announcement last week, LightCounting released May 2026 report on Silicon Photonics, LPO/LRO and NPO/CPO . The report includes appendices on packaging, laser integration and silicon photonics foundries. Industry leaders and start-ups driving advanced PIC packaging TSMC and Nvidia are focused on higher bandwidth for the next generation interconnects. Corning and GlobalFoundries are addressing the market need for a passive edge connector. And nsc ( New Silicon Corp ), the ECTC start-up competition winner, has introduced optical links embedded in the chip, see the figure below. This is potentially a revolutionary solution. TSMC is on track to manufacture silicon photonics and has outlined the roadmap and bandwidth-scaling challenges for the ecosystem. The Nvidia presentation nicely addressed a critical issue: the impact of using DWDM lasers in the optical engine on the link energy. Corning presented its edge coupling, passive alignment, detachable connector. GlobalFoundries showcased the performance of Corning&amp;rsquo;s connector by reporting the results of connecting it to a PIC. Full text of the research note is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Mon, 01 Jun 2026 12:00:00 GMT</pubDate>
 </item>
 <item>
 <title>2026 Is the Year of Silicon Photonics and Indium Phosphide</title>
 <link>https://www.lightcounting.com/newsletter/en/may-2026-silicon-photonics-lpolro-and-npocpo-377</link>
 <guid>https://www.lightcounting.com/newsletter/en/may-2026-silicon-photonics-lpolro-and-npocpo-377</guid>
-<pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
-</item>
-<item>
-<title>AI Boom Accelerates Transitions Across the Industry Supply Chain</title>
-<link>https://www.lightcounting.com/newsletter/en/may-2026-optical-vendor-landscape-376</link>
-<guid>https://www.lightcounting.com/newsletter/en/may-2026-optical-vendor-landscape-376</guid>
-<pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
-</item>
-<item>
-<title>Record Sales, Profits, and Backlog Across the Supply Chain. Can This Get Any Better?</title>
-<link>https://www.lightcounting.com/newsletter/en/may-2026-record-sales-profits-and-backlog-across-the-supply-chain-can-this-get-any-better-446</link>
-<guid>https://www.lightcounting.com/newsletter/en/may-2026-record-sales-profits-and-backlog-across-the-supply-chain-can-this-get-any-better-446</guid>
+<description>LightCounting releases May 2026 report on Silicon Photonics, LPO/LRO and NPO/CPO 2026 will be the first year for sales of transceivers using silicon photonics modulators to exceed 50% of the total $40 billion market. Despite many advantages of silicon photonics technology, it took almost a decade for it to make a significant impact on the optical transceiver market. Decisions made by several large companies, including Cisco, Huawei and Intel, helped to accelerate adoption of silicon photonics in the past. Deployments of Near-Packaged and Co-Packaged Optics (NPO/CPO) are accelerating adoption of silicon photonics now and boosting demand for InP CW lasers. Once again, several very large companies, including Broadcom, Nvidia and TSMC, are enabling this transition. Figure below shows our estimate for the market value of optical chips used in transceivers, AOCs, LPO, LRO, NPO and CPO. The market size was modest $4 billion in 2025, but it will grow by almost 4x to $15 billion in 2031. Sales of optical transceivers, AOCs, NPO and CPO will reach almost $80 billion by 2031. Silicon photonics chips accounted for 1/3 of all in 2025 and it will be contributing 42% (or $6.3 billion) to the total market for optical chips in 2031. The growth will continue well beyond 2031, as optical interconnects will proliferate from scale-out networks today to higher bandwidth scale-up networks before the end of this decade and to scale-in (networks inside a package for interconnects between chiplets) by the middle of the next decade. This is why the largest CMOS foundries like Samsung and TSMC have entered the silicon photonics market. It is not the $6.3 billion market for SiP chips by 2031 that attracts them, it is the path of the entire multi-trillion dollar semiconductor industry that crossed over from copper to optical interconnects. We are in the very early stages of this transition.
+
+Progress in silicon photonics will create opportunities for other optical materials and technologies. InP modulators (EMLs) may be replaced by silicon photonics, but the market for InP lasers, including CW lasers for pluggable transceivers and CPO/NPO as well as tunable lasers and InP PIC for coherent transceivers, will continue to grow. It is the largest segment of the optical chip market: 58% of the total in 2025 and it will still account for 46% (or $6.9 billion) of the total by 2031, including continuing contribution from EMLs. This forecast now accounts for a significant consumption of lasers for development of new products, such as NPO/CPO, as well as limited production yields. We also increased our assumptions for pricing since the price declines are minimal now because of the shortages. We expect that prices will be fairly stable in 2026-2027 unless the industry swings from shortages to a glut of production capacity, which will probably happen at some point in the future. There is an upside to this forecast as well. Most of the market growth is expected from applications of NPO/CPO in scale-up networks, yet this forecast is based on an assumption that only 10-15% of all scale-up interconnects will migrate to NPO/CPO by 2030-2031. We also expect that the scale-up networks will continue to rely on copper interconnects within the racks and the optical interconnects will be only used for multi-rack connections. There is a significant upside to our forecast if and when: - multi-rack scale-up systems become widely adopted - the scale-up domains extend well beyond 1,000 GPUs - scale-up networks start using optical interconnects within a rack, instead of copper. The new report is available to subscribers at: https://www.lightcounting.com/login
+
+Enabling effective decision-making based on a unique combination of quantitative and qualitative analysis. Reach us at info@lightcounting.com
+
+This website utilizes technologies such as cookies to enable essential website functionality. We do not sell any data about visitors to our website. By clicking &quot;Agree&quot;, you agree to the collection and use of your information by cookies and similar technologies as set forth in our Privacy Policy .</description>
 <pubDate>Fri, 01 May 2026 12:00:00 GMT</pubDate>
 </item>
 </channel></rss>
