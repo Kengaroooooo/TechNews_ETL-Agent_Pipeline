@@ -2,7 +2,7 @@
 // 端点均经 2026-09-25 实测：
 // - RSS 四家直连可用；TrendForce 真实端点为 /news/feed/（原始方案所给 rss.html 已 404）
 // - Vast.ai 只认 q 参数（o/order/limit 会被 API 以 400 拒绝），单查询上限 64 条，型号名带空格
-// - SemiAnalysis 主域名 Cloudflare 盾，备 .substack.com 端点；SEMI/Yole/LightCounting 反爬拦截，v1 仅探测
+// - SEMI/Yole/LightCounting 反爬拦截，v1 仅探测
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,7 +14,6 @@ export const RSS_SOURCES = [
   { name: 'Light Reading', url: 'https://www.lightreading.com/rss.xml' },
   { name: 'Fierce Network', url: 'https://www.fierce-network.com/rss/xml' },
   { name: 'TrendForce', url: 'https://www.trendforce.com/news/feed/' },
-  { name: 'SemiAnalysis', url: 'https://www.semianalysis.com/feed', alt: 'https://semianalysis.substack.com/feed' },
 ];
 
 // v1 仅健康探测（本地出口被反爬拦截；Actions 出口能否过，答案由 data/health.json 持续给出）
@@ -26,7 +25,17 @@ export const PROBE_ONLY = [
   // 已由本地 feed 供给（stealth Chrome 渲染突破 DataDome）；裸探测恒 202 属预期，可采集性以 feed 实际产出为准
   { name: 'Yole Group', url: 'https://www.yolegroup.com/articles/' },
   { name: 'IEEE 802.3', url: 'https://www.ieee802.org/3/' }, // 本地 200 可达，采集器排期 v2
+  // transcripts 采集由 src/stockanalysis.mjs 随采集记录诊断；此处探测代表性端点的总体可达性
+  { name: 'StockAnalysis', url: 'https://stockanalysis.com/stocks/nvda/transcripts/' },
 ];
+
+// stockanalysis.com transcripts（第四类采集器：索引页当 feed，见 src/stockanalysis.mjs）。
+// watch list 与关键词库覆盖面对齐：GPU（NVDA/AMD）、网络芯片/光互联（AVGO/MRVL）、存储（MU）。
+// 注：TSM 无 transcripts 收录（404），暂不列入；Quartr 补录后可加回
+export const SA_TICKERS = ['NVDA', 'MRVL', 'AVGO', 'AMD', 'MU'];
+export const SA_BACKFILL_DAYS = 90;        // 首跑只产出近 N 天 transcript，更早的只标 seen（防历史回灌）
+export const SA_MAX_MINUTES_PER_RUN = 2;   // 每轮最多产 N 篇全文纪要（LLM 文档模式，防挤占新闻研判）
+export const SA_MINUTES_BUDGET_MS = 5 * 60000; // 纪要子闸：与新闻研判共享 LLM 总预算，取 min(子闸, 总剩余)
 
 export const VASTAI_ENDPOINT = 'https://console.vast.ai/api/v0/bundles/';
 export const VASTAI_MODELS = ['H100 SXM', 'H100 NVL', 'H200', 'H200 NVL', 'B200', 'A100 SXM4', 'RTX 4090', 'RTX 5090'];

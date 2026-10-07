@@ -19,7 +19,7 @@ export function writeBrief(runTs, readings, graded, stats, llmOn, diag) {
   lines.push(`- 去重：拉取 ${stats.fetched} 条 → 新增 ${stats.new} 条`);
   lines.push(`- 初筛：过筛 ${stats.passed} 条 / 拒 ${stats.noise} 条`);
   lines.push(`- LLM 研判：${llmLine}${llmOn ? `（研判成功 ${stats.passed - stats.skipped} 条，降级直通 ${stats.skipped} 条）` : ''}`);
-  lines.push(`- 产出：P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}；P0 告警 Issue ${stats.p0_issues}`);
+  lines.push(`- 产出：P0 ${stats.p0} / P1 ${stats.p1} / P2 ${stats.p2}；纪要 ${stats.minutes ?? 0} 篇；P0 告警 Issue ${stats.p0_issues}`);
   lines.push('');
   const ok = readings.filter(r => r.p50 !== undefined);
   if (ok.length) {

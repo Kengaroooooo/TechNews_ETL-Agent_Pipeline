@@ -12,13 +12,17 @@ import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { decodeEntities } from '../src/collectors.mjs'; // 实体解码单一实现，直接复用
+import { decodeEntities, stripTags } from '../src/collectors.mjs'; // 实体解码/剥标签单一实现，直接复用
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const FEEDS_DIR = path.join(ROOT, 'data', 'feeds');
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const MAX_ITEMS = 15; // 单源入 feed 的最新 N 条（管线每轮只取 RSS_PER_SOURCE 条）
+const BODY_CAP = 6000; // 单条正文入 feed 的字符上限（简讯义务之外的全文留存按需裁剪）
+const DRY_RUN = process.env.LOCAL_FEEDS_DRY_RUN === '1'; // 调试开关：只提取写文件，不提交推送
+// 一次性回灌：无视 prev 视全部条目为新（重抓全部正文）。用于描述能力上线后补齐存量，日常勿开
+const BACKFILL = process.env.LOCAL_FEEDS_BACKFILL === '1';
 
 // ---------- LightCounting：服务端渲染 HTML，纯 HTTP 提取，无需浏览器 ----------
 // 页面结构（2026-09-25 实测）：/newsletters 为 55KB 服务端渲染 HTML，
@@ -29,7 +33,21 @@ const MONTHS = {
   july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
 };
 
-async function extractLightCounting() {
+// 详情页正文（2026-10-07 实测）：同样服务端渲染，正文在唯一 <h3> 标题后的一串 <p> 里；
+// 报告付费部分页面本就不含（留存义务豁免——公开部分即全部可得信息）。
+// 过滤 <40 字符的短段（页脚/杂项），截 BODY_CAP。
+function extractLcBody(html) {
+  const h3 = html.indexOf('<h3>');
+  if (h3 < 0) return '';
+  const seg = html.slice(h3).replace(/<script[\s\S]*?<\/script>/gi, ' ');
+  const paras = [...seg.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)]
+    .map(x => stripTags(decodeEntities(x[1])).trim())
+    .filter(t => t.length >= 40);
+  return paras.join('\n\n').slice(0, BODY_CAP);
+}
+
+// prevLinks：上一版 feed 已有的链接集合——新条目才抓详情页（成本闸，稳态每天 0-3 条）
+async function extractLightCounting(haveText) {
   const res = await fetch('https://www.lightcounting.com/newsletters', {
     headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(30000),
   });
@@ -48,6 +66,20 @@ async function extractLightCounting() {
       pubDate: d.toUTCString(), // 月刊粒度：精确到月，日期取当月 1 号（不伪装成日精度）
     });
   }
+  // 新条目补正文：URL 虽可复现（裸 HTTP 200），但顺手全文入 feed——下游免剥页
+  for (const it of items) {
+    if (haveText.has(it.link)) continue;
+    try {
+      const r = await fetch(it.link, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(30000) });
+      if (r.status === 200) {
+        const body = extractLcBody(await r.text());
+        if (body) it.description = body;
+      }
+    } catch (ex) {
+      console.log(`[feed] LightCounting 正文抓取失败 ${it.link}: ${String(ex).slice(0, 80)}`);
+    }
+    await new Promise(r => setTimeout(r, 800)); // 礼貌间隔
+  }
   return items;
 }
 
@@ -60,7 +92,7 @@ const CHROME_PATH = process.env.LOCAL_FEEDS_CHROME
   || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BROWSER_PROFILE = path.join(ROOT, 'tools', '.browser-profile'); // 固定身份攒 DataDome 信任分
 
-async function extractYole() {
+async function extractYole(haveText) {
   const [{ default: puppeteer }, { default: StealthPlugin }] = await Promise.all([
     import('puppeteer-extra'),
     import('puppeteer-extra-plugin-stealth'),
@@ -99,6 +131,27 @@ async function extractYole() {
       if (items.length >= MAX_ITEMS) break;
     }
     if (!items.length) throw new Error('渲染成功但未提取到文章卡片（页面结构可能已变化）');
+    // 新条目补正文（留存义务：DataDome 墙内 URL 不可复现，全文进 feed，仓库为唯一全文载体）。
+    // 正文容器 .yole-content（2026-10-07 实测：随内容伸缩，strategy-insights 2K/访谈 75K；
+    // 勿用启发式选择器——.single-post 是布局壳，混入导航/related/cookie 横幅）。
+    // /industry-news/ 路径挑战更严：goto 常返 202，但挑战在页面内自动解开——
+    // 以 waitForSelector(.yole-content) 为准而非 goto 状态码。留存义务方不裁剪，仅防病态封顶 120k
+    for (const it of items) {
+      if (haveText.has(it.link)) continue;
+      try {
+        await page.goto(it.link, { waitUntil: 'networkidle2', timeout: 45000 });
+        const found = await page.waitForSelector('.yole-content', { timeout: 25000 }).then(() => true).catch(() => false);
+        if (!found) throw new Error('正文容器未出现（DataDome 挑战未解）');
+        const body = await page.evaluate(() => {
+          const el = document.querySelector('.yole-content');
+          return el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '';
+        });
+        if (body) it.description = body.slice(0, 120000);
+        else throw new Error('.yole-content 为空');
+      } catch (ex) {
+        console.log(`[feed] Yole 正文抓取失败 ${it.link}: ${String(ex).slice(0, 80)}`);
+      }
+    }
     return items;
   } finally {
     await browser.close();
@@ -145,6 +198,9 @@ function toRss(channel, items) {
       `<title>${esc(it.title)}</title>`,
       `<link>${esc(it.link)}</link>`,
       `<guid>${esc(it.link)}</guid>`,
+      // 正文（Yole=留存义务全文 / LightCounting=顺手全文）：管线的 fetchLocalFeeds
+      // 读 description 入队列 content，简讯义务在此闭环
+      it.description ? `<description>${esc(it.description)}</description>` : '',
       it.pubDate ? `<pubDate>${esc(it.pubDate)}</pubDate>` : '',
       '</item>',
     );
@@ -184,18 +240,33 @@ mkdirSync(FEEDS_DIR, { recursive: true });
 let failed = 0;
 for (const src of SOURCES) {
   try {
-    const items = await src.extract();
-    if (!items.length) throw new Error('提取到 0 条（页面结构可能已变化）');
     const p = path.join(FEEDS_DIR, src.file);
     const prev = existsSync(p) ? readFileSync(p, 'utf8') : '';
+    // 上一版已有正文的链接集合（guid 即 link）：抓过正文的条目不再重抓详情页（成本闸）。
+    // 上轮抓取失败的（prev 无正文）不在集合内——下轮自动重试，DataDome 202 类瞬时拦截自愈
+    const unesc = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    const prevDesc = new Map([...prev.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(m => {
+      const link = m[1].match(/<guid>(.*?)<\/guid>/)?.[1]?.replace(/&amp;/g, '&');
+      const desc = m[1].match(/<description>([\s\S]*?)<\/description>/)?.[1];
+      return link ? [link, desc ? unesc(desc) : ''] : null;
+    }).filter(Boolean));
+    const haveText = BACKFILL ? new Set() : new Set([...prevDesc].filter(([, d]) => d).map(([l]) => l));
+    const items = await src.extract(haveText);
+    if (!items.length) throw new Error('提取到 0 条（页面结构可能已变化）');
+    for (const it of items) if (!it.description) it.description = prevDesc.get(it.link) || '';
     const next = toRss(src.channel, items);
     writeFileSync(p, next);
-    console.log(`[feed] ${src.channel.title}: ${items.length} 条 -> ${path.relative(ROOT, p)}${prev === next ? '（内容无变化）' : ''}`);
+    const withBody = items.filter(i => i.description).length;
+    console.log(`[feed] ${src.channel.title}: ${items.length} 条（含正文 ${withBody}） -> ${path.relative(ROOT, p)}${prev === next ? '（内容无变化）' : ''}`);
   } catch (ex) {
     failed++;
     console.log(`[feed] ${src.channel.title} 失败（保留旧 feed）：${String(ex).slice(0, 120)}`);
   }
 }
-commitAndPush();
+if (DRY_RUN) {
+  console.log('[dry-run] LOCAL_FEEDS_DRY_RUN=1，跳过提交推送');
+} else {
+  commitAndPush();
+}
 console.log(`[done] ${SOURCES.length - failed}/${SOURCES.length} 源成功`);
 process.exit(failed === SOURCES.length ? 1 : 0);

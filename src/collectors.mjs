@@ -67,15 +67,19 @@ function asLink(v) {
   return text ?? '';
 }
 
-export function makeItem({ source, title, link, content, published }) {
+// digest：源方自带的简讯摘要（RSS description）。队列 content 的降级素材——
+// 慷慨源（content 为全文）研判失败时，队列降级用 digest 而非截断原文；与 content 相同时不重复存。
+export function makeItem({ source, title, link, content, digest = '', published }) {
   link = asLink(link).trim();
   title = stripTags(decodeEntities(asText(title)));
   const contentText = stripTags(decodeEntities(asText(content)));
+  const digestText = stripTags(decodeEntities(asText(digest))).trim();
   // link 与 title 均空时回落 content 前缀，避免同源此类条目 hash 互相碰撞
   const base = link || (source + title + contentText.slice(0, 200));
   return {
     source, title, link,
     content: contentText,
+    digest: digestText && digestText !== contentText ? digestText : '',
     published: asText(published),
     fetched_at: utcnow(),
     item_id: createHash('sha256').update(base).digest('hex').slice(0, 16),
@@ -109,6 +113,7 @@ export async function fetchRss(src) {
             title: e.title ?? '',
             link: e.link ?? '',
             content: e['content:encoded'] ?? e.content ?? e.summary ?? e.description ?? '',
+            digest: e.description ?? e.summary ?? '',
             published: e.pubDate ?? e.published ?? e.updated ?? '',
           }))
           .filter(i => i.title || i.content);

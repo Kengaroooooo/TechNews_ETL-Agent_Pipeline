@@ -5,7 +5,7 @@
 ## 架构（级联过滤）
 
 ```
-数据源层（RSS ×5 / Vast.ai REST / 本地 feed ×1 / 探测源 ×4）
+数据源层（RSS ×4 / Vast.ai REST / 本地 feed ×2 含全文 / StockAnalysis transcripts / 探测源 ×5）
   → 采集与清洗（HTML 剥除、归一 StandardItem）
   → 去重（URL-hash，data/seen.json，30 天滚动窗口）
   → 一级规则初筛（关键词库 + 高信噪比源白名单；未过筛计噪声丢弃）
@@ -81,29 +81,36 @@ schtasks /create /tn "TechNews-LocalFeeds" /tr "\"C:\Program Files\nodejs\node.e
 | id / url / source | 条目 hash / 原文链接 / 源名称 |
 | published / fetched_at | 文内发布时间 / 抓取时间（UTC） |
 | title / category / priority | 规范化标题 / 分类 / P0-P2 |
-| entities / tldr / key_takeaways / agent_comment | LLM 生成的研判摘要（参考信息，非事实口径） |
+| entities / tldr / summary / key_takeaways / agent_comment | LLM 生成的研判摘要（summary ≈150 字信息性摘要；参考信息，非事实口径） |
 | keywords_hit | 一级初筛命中词 |
 | llm_skipped | LLM 未研判直通（超上限/超时预算/研判失败），字段值 `true` 时其余 LLM 字段为空 |
-| content | 清洗后原文快照（≤8000 字符） |
+| minutes_file | transcript 类条目的全文纪要指针（`data/minutes/*.md`，无则空） |
+| content | 简讯口径，降级链：LLM summary → 源方摘要（RSS description）→ 原文前 400 字符。慷慨源（全文 RSS）的原文不再入队——url 可复现，研判在内存中吃过全文 |
 
 ### 其他文件
 
 - `data/series/gpu_prices.jsonl`：GPU 挂牌价时序（ts + 分型号 n/min/p25/p50/p75/max/avg/truncated）。口径注意：P2P 挂牌 ≠ 成交价，只适合序列纵向比较
+- `data/minutes/`：transcript 全文纪要（LLM 文档模式：发言人边界分块提取 → 合并；每篇含核心结论/财务指引/业务要点/Q&A 焦点/风险措辞五节，预算不足降级为要点直拼并标注）
 - `data/briefs/`：每日简报（人读）
 - `data/health.json`：全端点健康记录
 - `data/seen.json`：去重索引
+
+### 简讯与全文政策
+
+每条队列条目必供**简讯**（标题 + content 摘要）；**完整信息**按 URL 可复现性分级处置：可复现（TrendForce/Light Reading/EE Times/LightCounting/Fierce Network/StockAnalysis）→ url 即出口，项目不留存原文；不可复现（Yole，DataDome 全路径）→ 本地 feed 生产者渲染抓取**全文留存**（仓库为唯一全文载体）；付费墙内部分（LightTrends 报告正文）→ 豁免，留存公开部分。
 
 ## 源健康（2026-09-25 本地出口基线，Actions 出口状态看 [data/health.json](data/health.json)）
 
 | 源 | 协议 | 本地实测 | 说明 |
 |---|---|---|---|
-| EE Times / Light Reading / Fierce Network / TrendForce | RSS | ✅ 200 | TrendForce 真实端点 `/news/feed/` |
-| SemiAnalysis | RSS | ⚠️ CF 盾 | 主域名 curl 403；备 `semianalysis.substack.com/feed` 自动切换 |
+| EE Times / Light Reading / Fierce Network / TrendForce | RSS | ✅ 200 | TrendForce 真实端点 `/news/feed/`，`content:encoded` 给全文（队列只留 LLM 摘要）；其余三家给 description 摘要 |
+| Fierce Network 文章页 | HTML | ⚠️ CF 挑战 | RSS 正常；文章页程序化 403（Cloudflare JS 挑战，完整浏览器头也不过），浏览器可读——按「人工可复现」豁免留存，链接即出口 |
+| StockAnalysis transcripts | HTML | ✅ 200 | 无反爬；索引页一页含全史（当 feed 轮询），详情页全文服务端渲染；数据源 Quartr，覆盖财报会+会议 keynote。watch list：NVDA/MRVL/AVGO/AMD/MU（TSM 无收录 404，补录后可加回） |
 | Vast.ai | REST | ✅ 200 | 只认 `q` 参数（o/order/limit 被 400 拒）；单查询 64 条截断；型号名带空格 |
 | IEEE 802.3 | HTML | ✅ 200 | v1 仅探测，采集器排期 v2 |
 | SEMI | HTML | ❌ 403 | 反爬拦截 |
-| Yole | HTML | ✅ 已由本地 feed 供给 | DataDome 202 挑战已被本机 stealth Chrome 渲染突破（住宅 IP + 固定浏览器身份是关键）；裸探测恒 202 属预期 |
-| LightCounting | HTML | ✅ 已由本地 feed 供给 | `/newsletters` 为服务端渲染页，HTTP 直取即可（注意 `/newsroom` 是伪 200 的 404 页，曾误导探测）；抓取目标可达性继续由 health.json 监控 |
+| Yole | HTML | ✅ 本地 feed 供给（含全文） | DataDome 202 挑战已被本机 stealth Chrome 渲染突破（住宅 IP + 固定浏览器身份是关键）；`/industry-news/` 路径挑战更严，以 `.yole-content` 出现为成功判据；正文全文留存进 feed（URL 不可复现 → 留存义务方） |
+| LightCounting | HTML | ✅ 本地 feed 供给（含正文） | 列表与详情页均服务端渲染，HTTP 直取即可（注意 `/newsroom` 是伪 200 的 404 页，曾误导探测）；详情正文顺手入 feed，报告付费部分豁免 |
 
 > 关于"换出口能否解决反爬"：Actions 换到 Azure 美国段解决**可达性与 IP 层封锁**，但 Cloudflare/DataDome 的 **JS 挑战跟的是客户端不是 IP**，数据中心 IP 风控评分反而更低——所以探测源的真实状态以 health.json 实测为准，不预设。
 

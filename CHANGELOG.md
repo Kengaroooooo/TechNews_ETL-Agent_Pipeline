@@ -2,6 +2,15 @@
 
 > 项目修改历史。条目格式：日期 | 内容与原因。
 
+## 2026-10-07
+
+- **移除 SemiAnalysis 信源**：主域名 CF 盾 + 备用 substack 端点双 403 持续无产出（health.json 多轮记录），放弃。同日完成 stockanalysis.com 侦察（transcripts/company profile 全服务端渲染、裸 curl 可直取，无 CF 挑战），作为候选替代信源，接入方案另行实施。
+- **确立「简讯与全文政策」并全源对齐**：条目必供简讯（标题+摘要）；全文按 URL 可复现性分级——可复现→url 即出口不留存（全 RSS 源/StockAnalysis/Fierce Network 文章页按"人工可复现"豁免），不可复现→全文留存（Yole，feed 即载体），付费墙→豁免（LightTrends 报告正文）。可复现性验证一律用 node fetch（本机 curl/schannel 对 Akamai 站会 TLS renegotiation 假挂，EE Times 000 为客户端怪癖非反爬）。
+- **新增 StockAnalysis transcripts 采集器**（`src/stockanalysis.mjs`，watch list NVDA/MRVL/AVGO/AMD/MU；TSM 无收录 404 属源端缺数据，已换 MRVL）：索引页当 feed 轮询（每 ticker 每轮 1 请求），去重闸前置于详情页抓取之前（seen 命中/窗口外不抓详情，SA_BACKFILL_DAYS=90 防首跑历史回灌）；条目 content = 索引页自带 Quartr 摘要。稳态实测第二轮全 0 新增。
+- **新增 LLM 文档模式纪要**（`src/minutes.mjs` + `llm.mjs` 抽出通用 `chat()` 底层）：transcript 全文按发言人边界分块（≤6000 字符，Q&A 结构不切断）→ 逐块提取 → 合并五节纪要落 `data/minutes/*.md`，队列条目带 minutes_file 指针；独立子闸（每轮 ≤2 篇、5min）与新闻研判共享总预算（新闻优先），预算不足降级为要点直拼并标注；原文不落盘（url 可复现）。LLM key 环境下端到端待 Actions 首跑验证。
+- **队列 content 摘要化**：LLM schema 新增 summary（≈150 字信息性摘要，研判调用顺手产出零额外请求），content 降级链 = LLM summary → 源方 description（makeItem 新增 digest 字段）→ 原文前 400 字；慷慨源（TrendForce 全文 RSS）原文不再入队，`slice(0,8000)` 截断移除。
+- **本地 feed 补正文**（`tools/local-feeds.mjs`）：LightCounting 详情页 HTTP 直取剥 `<p>` 正文（列表/详情均 SSR）；Yole 同浏览器会话渲染详情页取 `.yole-content` 全文（留存义务方不裁剪；`/industry-news/` 路径 DataDome 更严，以 waitForSelector 为成功判据而非 goto 状态码）。成本闸：上轮已有正文的条目不重抓，失败条目自动下轮重试；存量一次性回灌（LOCAL_FEEDS_BACKFILL=1）已执行——LC 15/15、Yole 15/15（含 76K 字符访谈全文）；prev 正文继承防 feed 重写时静默丢失。调试开关 LOCAL_FEEDS_DRY_RUN=1 跳过提交。
+
 ## 2026-09-25
 
 - **v0.1 建成并本地实测通过**：级联管线（RSS ×5 + Vast.ai 分型号行情 + 全端点健康探测 → URL-hash 去重 → 关键词初筛 → LLM 研判插槽 → 价格序列/条目队列/每日简报/P0 Issue 警报）。本地首跑：4 源 RSS 40 条、Vast.ai 8/8 型号、初筛 15 过 25 弃。端点按实测修正三处：TrendForce 真实端点为 `/news/feed/`（原始方案的 rss.html 已 404）、Vast.ai 只认 `q` 参数（o/order/limit 被 400 拒）且单查询 64 条截断、SemiAnalysis 主域名 CF 盾加 `semianalysis.substack.com/feed` 备用端点。

@@ -1,13 +1,18 @@
-// 级联流水线入口：采集（含健康诊断）→ 去重 → 初筛 → LLM 研判 → 序列/早报/队列 → P0 告警 → 去重落盘。
+// 级联流水线入口：采集（含健康诊断）→ 去重 → 初筛 → LLM 研判/纪要 → 序列/早报/队列 → P0 告警 → 去重落盘。
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import * as collectors from './collectors.mjs';
+import * as stockanalysis from './stockanalysis.mjs';
+import * as minutes from './minutes.mjs';
 import * as dedup from './dedup.mjs';
 import * as filter from './filter.mjs';
 import * as llm from './llm.mjs';
 import * as series from './series.mjs';
 import * as render from './render.mjs';
-import { DATA_DIR, RSS_SOURCES, MAX_LLM_ITEMS, LLM_BUDGET_MS, utcnow } from './config.mjs';
+import {
+  DATA_DIR, RSS_SOURCES, MAX_LLM_ITEMS, LLM_BUDGET_MS,
+  SA_TICKERS, SA_BACKFILL_DAYS, SA_MAX_MINUTES_PER_RUN, SA_MINUTES_BUDGET_MS, utcnow,
+} from './config.mjs';
 
 function writeHealth(results) {
   mkdirSync(DATA_DIR, { recursive: true });
@@ -56,6 +61,9 @@ async function main() {
   const runTs = utcnow();
   console.log(`[pipeline] cycle start ${runTs}`);
 
+  // 去重索引先载入：transcripts 采集器需要用它把去重闸前移到详情页抓取之前
+  const seen = dedup.load();
+
   // 1. 采集（RSS 主端点的健康诊断随采集一并记录，避免同源二次全量拉取；另探测反爬源/API/备用端点）
   const items = [];
   const health = [];
@@ -70,13 +78,17 @@ async function main() {
   if (local.files.length) console.log(`[collect] local feeds: ${local.items.length} items from ${local.files.join(', ')}`);
   items.push(...local.items);
 
+  // 1c. stockanalysis transcripts（索引页当 feed：每 ticker 一请求即轮询；seen 命中/窗口外
+  //     的条目不再抓详情页，去重前置控制采集成本。条目 content = 索引页自带 Quartr 摘要）
+  const sa = await stockanalysis.collect(SA_TICKERS, seen, SA_BACKFILL_DAYS);
+  items.push(...sa.items);
+
   health.push(...await collectors.probeEndpoints());
   writeHealth(health);
   const readings = await collectors.fetchVastai();
   console.log(`[collect] Vast.ai: ${readings.filter(r => !r.error).length}/${readings.length} models ok`);
 
   // 2. 去重（此处仅过滤；seen 提交延后到全部产出落盘之后——中途失败条目可被下轮重试）
-  const seen = dedup.load();
   const fresh = items.filter(i => !(i.item_id in seen));
   console.log(`[dedup] ${items.length} fetched, ${fresh.length} new`);
 
@@ -107,9 +119,31 @@ async function main() {
       key_takeaways: report?.key_takeaways || [],
       agent_comment: report?.agent_comment || '',
       keywords_hit: i.keywords_hit || [],
-      content: i.content.slice(0, 8000),
+      // 队列 content = 简讯口径（项目定位）：LLM 摘要 > 源方摘要(digest) > 原文截断。
+      // 慷慨源（TrendForce 全文 RSS）的原文不再入队——研判在内存中吃过全文，url 可复现
+      content: report?.summary || i.digest || i.content.slice(0, 400),
       llm_skipped: llmOn && !report,
     });
+  }
+
+  // 4b. 文档模式纪要：transcript 全文 → 分块提取 → 合并 data/minutes/*.md，队列补 minutes_file
+  //     指针。独立子闸（SA_MINUTES_BUDGET_MS）且与新闻研判共享总预算——新闻优先，剩余给纪要；
+  //     预算尽/条数满的 transcript 降级为 Quartr 摘要条目（minutes_file 留空），下轮不再补做
+  let minutesDone = 0;
+  if (llmOn) {
+    const gradedById = new Map(graded.map(g => [g.id, g]));
+    for (const [id, t] of sa.texts) {
+      if (minutesDone >= SA_MAX_MINUTES_PER_RUN) break;
+      if (!gradedById.has(id)) continue; // 只为过筛入队的条目产纪要（省 LLM）
+      const left = Math.min(SA_MINUTES_BUDGET_MS, deadline - Date.now());
+      if (left < 60000) break; // 一篇分块+合并至少需要一分钟量级
+      try {
+        const m = await minutes.digestTranscript(t, left);
+        if (m) { gradedById.get(id).minutes_file = m.rel; minutesDone++; }
+      } catch (ex) {
+        console.log(`[minutes] ${t.meta.slug} 失败（条目仍以摘要入队）: ${String(ex).slice(0, 80)}`);
+      }
+    }
   }
 
   // 5. 输出
@@ -121,6 +155,7 @@ async function main() {
     p1: graded.filter(g => g.priority === 'P1').length,
     p2: graded.filter(g => g.priority === 'P2').length,
     skipped: graded.filter(g => g.llm_skipped).length,
+    minutes: minutesDone,
     p0_issues: issues,
   };
   // 各层执行状态汇总（简报「运行状态」块 + 末行日志用）
@@ -145,9 +180,11 @@ async function main() {
   render.writeBrief(runTs, readings, graded, stats, llmOn, diag);
   render.writeQueue(runTs, graded);
 
-  // 6. 全部产出落盘后提交去重索引（在此之前失败 = 下轮重试，而非永久丢条目）
+  // 6. 全部产出落盘后提交去重索引（在此之前失败 = 下轮重试，而非永久丢条目）。
+  //    transcripts 窗口外的老条目同样在此标 seen——它们不产出，但下轮不再出现在"新增"里
   const now = Math.floor(Date.now() / 1000);
   for (const i of fresh) seen[i.item_id] = now;
+  for (const id of sa.staleIds) seen[id] = now;
   const kept = dedup.save(seen);
   const llmState = !llmOn ? 'off' : diag.llm.tripped ? 'tripped' : 'on';
   console.log(`[pipeline] done: ${JSON.stringify(stats)} llm=${llmState} src=${diag.srcOk}/${diag.srcTotal} vast=${diag.vastOk}/${diag.vastTotal} seen=${kept}`);
