@@ -1,5 +1,5 @@
 {
- "checked_at": "2026-11-13T07:59:16Z",
+ "checked_at": "2026-11-14T07:36:59Z",
  "sources": [
   {
    "name": "EE Times",
@@ -7,7 +7,7 @@
    "url": "https://www.eetimes.com/feed/",
    "status": 200,
    "entries": 10,
-   "ms": 248
+   "ms": 176
   },
   {
    "name": "Light Reading",
@@ -15,15 +15,14 @@
    "url": "https://www.lightreading.com/rss.xml",
    "status": 200,
    "entries": 50,
-   "ms": 555
+   "ms": 532
   },
   {
    "name": "Fierce Network",
    "kind": "rss",
    "url": "https://www.fierce-network.com/rss/xml",
-   "status": 200,
-   "entries": 25,
-   "ms": 117
+   "status": 403,
+   "ms": 31
   },
   {
    "name": "TrendForce",
@@ -31,49 +30,49 @@
    "url": "https://www.trendforce.com/news/feed/",
    "status": 200,
    "entries": 20,
-   "ms": 1081
+   "ms": 1074
   },
   {
    "name": "SEMI",
    "kind": "probe-only",
    "url": "https://www.semi.org/en/news-media-press",
    "status": 403,
-   "ms": 99
+   "ms": 69
   },
   {
    "name": "LightCounting",
    "kind": "probe-only",
    "url": "https://www.lightcounting.com/newsletters",
    "status": 200,
-   "ms": 277
+   "ms": 177
   },
   {
    "name": "Yole Group",
    "kind": "probe-only",
    "url": "https://www.yolegroup.com/articles/",
    "status": 202,
-   "ms": 269
+   "ms": 197
   },
   {
    "name": "IEEE 802.3",
    "kind": "probe-only",
    "url": "https://www.ieee802.org/3/",
    "status": 200,
-   "ms": 581
+   "ms": 96
   },
   {
    "name": "StockAnalysis",
    "kind": "probe-only",
    "url": "https://stockanalysis.com/stocks/nvda/transcripts/",
    "status": 200,
-   "ms": 28
+   "ms": 26
   },
   {
    "name": "Vast.ai API",
    "kind": "api",
    "url": "https://console.vast.ai/api/v0/bundles/",
    "status": 200,
-   "ms": 254
+   "ms": 250
   }
  ]
 }
